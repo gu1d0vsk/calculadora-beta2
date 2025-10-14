@@ -59,13 +59,16 @@ def get_weather_icon(wmo_code):
         return "🌡️"
 
 @st.cache_data(ttl=10800) # Cache de 3 horas
-def get_daily_weather():
+def get_daily_weather(dia_offset=0):
     """Busca a previsão de temperatura, chuva, UV e ícone para o dia no Rio de Janeiro."""
     try:
         lat = -22.93
         lon = -43.17
         fuso_horario_brasil = "America/Sao_Paulo"
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&hourly=uv_index&timezone={fuso_horario_brasil}&forecast_days=1"
+        fuso = pytz.timezone(fuso_horario_brasil)
+        data_alvo = (datetime.datetime.now(fuso) + datetime.timedelta(days=dia_offset)).strftime('%Y-%m-%d')
+        
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&hourly=uv_index&timezone={fuso_horario_brasil}&start_date={data_alvo}&end_date={data_alvo}"
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
@@ -80,8 +83,10 @@ def get_daily_weather():
         hourly_data = data['hourly']
         uv_index_midday = hourly_data['uv_index'][12]
         
+        prefixo_dia = "Hoje" if dia_offset == 0 else "Amanhã"
+        
         forecast_parts = [
-            f"{icon} Hoje no Rio: Mínima de {temp_min:.0f}°C e Máxima de {temp_max:.0f}°C",
+            f"{icon} {prefixo_dia} no Rio: Mínima de {temp_min:.0f}°C e Máxima de {temp_max:.0f}°C",
             f"💧 {rain_prob:.0f}%"
         ]
         
@@ -146,7 +151,6 @@ def verificar_eventos_proximos():
             mensagens.append(mensagem)
     return mensagens
 
-# --- NOVA FUNÇÃO ---
 def gerar_contagem_regressiva_home_office():
     """Gera a string de contagem regressiva para o home office."""
     try:
@@ -325,6 +329,8 @@ if st.session_state.show_results:
             hora_entrada = datetime.datetime.strptime(formatar_hora_input(entrada_str), "%H:%M")
             
             predictions_container_class = "predictions-wrapper"
+            warnings_html = ""
+            footnote = ""
 
             limite_saida = hora_entrada.replace(hour=20, minute=0, second=0, microsecond=0)
             duracao_almoço_previsao = 0
@@ -332,6 +338,9 @@ if st.session_state.show_results:
                 saida_almoco_prev = datetime.datetime.strptime(formatar_hora_input(saida_almoco_str), "%H:%M")
                 retorno_almoco_prev = datetime.datetime.strptime(formatar_hora_input(retorno_almoco_str), "%H:%M")
                 duracao_almoço_previsao = (retorno_almoco_prev - saida_almoco_prev).total_seconds() / 60
+                if duracao_almoço_previsao >= 120:
+                    warnings_html += '<div class="custom-warning">🥪 Atenção: Intervalos superiores a 2 horas podem desconsiderar a marcação de ponto.</div>'
+
             
             hora_nucleo_inicio = hora_entrada.replace(hour=9, minute=0)
             
@@ -374,8 +383,6 @@ if st.session_state.show_results:
             
             predictions_html = f"""<div class='section-container'><h3>Previsões de Saída</h3><div class="predictions-grid-container"><div class="metric-custom metric-minimo"><div class="label">Mínimo {texto_desc_5h}</div><div class="value">{hora_saida_5h.strftime('%H:%M')}</div><div class="details">{minutos_intervalo_5h:.0f}min de {termo_intervalo_5h}</div></div><div class="metric-custom metric-padrao"><div class="label">Jornada Padrão {texto_desc_8h}</div><div class="value">{hora_saida_8h.strftime('%H:%M')}</div><div class="details">{minutos_intervalo_demais:.0f}min de almoço</div></div><div class="metric-custom metric-maximo"><div class="label">Máximo {texto_desc_10h}</div><div class="value">{hora_saida_10h.strftime('%H:%M')}</div><div class="details">{minutos_intervalo_demais:.0f}min de almoço</div></div></div></div>"""
             
-            footnote = ""
-            warnings_html = ""
             if saida_real_str:
                 predictions_container_class += " de-emphasized"
                 
@@ -458,9 +465,15 @@ if st.session_state.show_results:
         finally:
             st.session_state.show_results = False
 
-daily_forecast = get_daily_weather()
+fuso = pytz.timezone("America/Sao_Paulo")
+hora_atual = datetime.datetime.now(fuso).hour
+offset = 1 if hora_atual >= 20 else 0
+
+daily_forecast = get_daily_weather(dia_offset=offset)
 if daily_forecast:
     st.markdown("---")
     st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{daily_forecast}</p>", unsafe_allow_html=True)
 
-
+contagem_regressiva = gerar_contagem_regressiva_home_office()
+if contagem_regressiva:
+    st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{contagem_regressiva}</p>", unsafe_allow_html=True)
