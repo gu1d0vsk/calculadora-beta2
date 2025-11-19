@@ -283,7 +283,7 @@ st.markdown("""
     .st-emotion-cache-yinll1 svg { display: none; } 
     .st-emotion-cache-ubko3j svg { display: none; }
     .st-emotion-cache-467cry hr:not([size]) {    display: none;}
-    .st-emotion-cache-zh2fnc {    place-items: center;}
+    .st-emotion-cache-zh2fnc {    place-items: center; width: auto !important;}
 
 </style>
 """, unsafe_allow_html=True)
