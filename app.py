@@ -282,7 +282,6 @@ st.markdown("""
     .st-at {    border-top-left-radius: 1.5rem;}
     .st-emotion-cache-yinll1 svg { display: none; } 
     .st-emotion-cache-ubko3j svg { display: none; }
-    .stElementContainer.element-container.st-emotion-cache-zh2fnc.e1wguzas1 {    width: auto;}
     .st-emotion-cache-467cry hr:not([size]) {    display: none;}
 
 </style>
