@@ -185,11 +185,14 @@ def calcular_tempo_nucleo(entrada, saida, saida_almoco, retorno_almoco):
         return 0
     tempo_bruto_nucleo_segundos = (fim_trabalho_nucleo - inicio_trabalho_nucleo).total_seconds()
     tempo_almoco_no_nucleo_segundos = 0
+    
+    # Se tiver horário de almoço explícito
     if saida_almoco and retorno_almoco:
         inicio_almoco_sobreposicao = max(inicio_trabalho_nucleo, saida_almoco)
         fim_almoco_sobreposicao = min(fim_trabalho_nucleo, retorno_almoco)
         if fim_almoco_sobreposicao > inicio_almoco_sobreposicao:
             tempo_almoco_no_nucleo_segundos = (fim_almoco_sobreposicao - inicio_almoco_sobreposicao).total_seconds()
+            
     tempo_liquido_nucleo_segundos = tempo_bruto_nucleo_segundos - tempo_almoco_no_nucleo_segundos
     return max(0, tempo_liquido_nucleo_segundos / 60)
 
@@ -271,6 +274,24 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# --- AVISO DE DOAÇÃO DE SANGUE ---
+st.markdown("""
+<div style="background-color: rgba(255, 82, 82, 0.1); border-left: 6px solid #ff5252; padding: 1.2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <h4 style="margin: 0 0 0.8rem 0; color: #d32f2f; display: flex; align-items: center; font-weight: 700;">
+        <span style="font-size: 1.5rem; margin-right: 0.5rem;">🩸</span> Campanha de Doação de Sangue
+    </h4>
+    <p style="font-size: 1.1rem; margin-bottom: 1rem; color: #333; font-weight: 500;">
+        Dias 12 e 13 de Novembro, das 10h às 15h <br>
+        <span style="font-weight: normal;">Local:</span> Espaço Multiplex (Pilotis)
+    </p>
+    <hr style="margin: 0.8rem 0; border: none; border-top: 1px solid rgba(255, 82, 82, 0.2);">
+    <p style="font-size: 0.85rem; color: #555; margin: 0; line-height: 1.5;">
+        <strong>Requisitos:</strong> Portar documento de identidade com foto; Estar bem de saúde; Pesar no mínimo 50 Kg; <strong>Não estar em jejum</strong>. Evitar apenas alimentos gordurosos nas 3 horas que antecedem a doação.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+# ---------------------------------
+
 mensagem_do_dia = obter_mensagem_do_dia()
 st.markdown(f'<p class="main-title">{mensagem_do_dia}</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Informe seus horários para calcular a jornada diária</p>', unsafe_allow_html=True)
@@ -280,11 +301,21 @@ mensagens_eventos = verificar_eventos_proximos()
 col_buffer_1, col_main, col_buffer_2 = st.columns([1, 6, 1])
 with col_main:
     entrada_str = st.text_input("Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
-    col1, col2 = st.columns(2)
-    with col1:
-        saida_almoco_str = st.text_input("Saída para o Almoço", key="saida_almoco")
-    with col2:
-        retorno_almoco_str = st.text_input("Volta do Almoço", key="retorno_almoco")
+    
+    # --- CHECKBOX DE INTERVALO AUTOMÁTICO ---
+    usar_intervalo_auto = st.checkbox("✅ Intervalo Automático (Mínimo)", help="Calcula o desconto automático (30min ou 15min) sem precisar digitar os horários de almoço.")
+    
+    if not usar_intervalo_auto:
+        col1, col2 = st.columns(2)
+        with col1:
+            saida_almoco_str = st.text_input("Saída para o Almoço", key="saida_almoco")
+        with col2:
+            retorno_almoco_str = st.text_input("Volta do Almoço", key="retorno_almoco")
+    else:
+        saida_almoco_str = ""
+        retorno_almoco_str = ""
+    # ----------------------------------------
+
     saida_real_str = st.text_input("Saída", key="saida_real")
     col_calc, col_events = st.columns(2)
     with col_calc:
@@ -331,10 +362,13 @@ if st.session_state.show_results:
 
             limite_saida = hora_entrada.replace(hour=20, minute=0, second=0, microsecond=0)
             duracao_almoço_previsao = 0
-            if saida_almoco_str and retorno_almoco_str:
+            
+            # Se NÃO for auto e tiver inputs, calcula a duração
+            if not usar_intervalo_auto and saida_almoco_str and retorno_almoco_str:
                 saida_almoco_prev = datetime.datetime.strptime(formatar_hora_input(saida_almoco_str), "%H:%M")
                 retorno_almoco_prev = datetime.datetime.strptime(formatar_hora_input(retorno_almoco_str), "%H:%M")
                 duracao_almoço_previsao = (retorno_almoco_prev - saida_almoco_prev).total_seconds() / 60
+            # Se for auto, a previsão já assume o mínimo (que é o padrão do código abaixo)
             
             hora_nucleo_inicio = hora_entrada.replace(hour=9, minute=0)
             
@@ -357,7 +391,6 @@ if st.session_state.show_results:
             
             minutos_intervalo_demais = max(30, duracao_almoço_previsao)
             
-            # Previsões usando entrada validada
             hora_saida_8h_calculada = entrada_valida_previsao + datetime.timedelta(hours=8, minutes=minutos_intervalo_demais)
             hora_saida_8h = min(hora_saida_8h_calculada, limite_saida)
 
@@ -396,22 +429,46 @@ if st.session_state.show_results:
                 
                 duracao_almoco_minutos_real = 0
                 saida_almoco, retorno_almoco = None, None
-                if saida_almoco_str and retorno_almoco_str:
-                    saida_almoco = datetime.datetime.strptime(formatar_hora_input(saida_almoco_str), "%H:%M")
-                    retorno_almoco = datetime.datetime.strptime(formatar_hora_input(retorno_almoco_str), "%H:%M")
-                    if retorno_almoco < saida_almoco:
-                        raise ValueError("A volta do almoço deve ser depois da saída para o almoço.")
-                    duracao_almoco_minutos_real = (retorno_almoco - saida_almoco).total_seconds() / 60
+                
+                # --- LÓGICA AJUSTADA PARA INTERVALO AUTOMÁTICO ---
+                if not usar_intervalo_auto:
+                    if saida_almoco_str and retorno_almoco_str:
+                        saida_almoco = datetime.datetime.strptime(formatar_hora_input(saida_almoco_str), "%H:%M")
+                        retorno_almoco = datetime.datetime.strptime(formatar_hora_input(retorno_almoco_str), "%H:%M")
+                        if retorno_almoco < saida_almoco:
+                            raise ValueError("A volta do almoço deve ser depois da saída para o almoço.")
+                        duracao_almoco_minutos_real = (retorno_almoco - saida_almoco).total_seconds() / 60
+                else:
+                    # Se for automático, calcula a duração baseada no tempo bruto
+                    trabalho_bruto_temp = 0
+                    if saida_valida > entrada_valida:
+                         trabalho_bruto_temp = (saida_valida - entrada_valida).total_seconds() / 60
+                    
+                    if trabalho_bruto_temp > 360:
+                        duracao_almoco_minutos_real = 30
+                    elif trabalho_bruto_temp > 240:
+                        duracao_almoco_minutos_real = 15
+                    else:
+                        duracao_almoco_minutos_real = 0
+                # --------------------------------------------------
+
                 almoco_efetivo_minutos = 0
-                if saida_almoco and retorno_almoco:
-                    inicio_almoco_valido = max(saida_almoco, entrada_valida)
-                    fim_almoco_valido = min(retorno_almoco, saida_valida)
-                    if fim_almoco_valido > inicio_almoco_valido:
-                        almoco_efetivo_minutos = (fim_almoco_valido - inicio_almoco_valido).total_seconds() / 60
+                if not usar_intervalo_auto:
+                    if saida_almoco and retorno_almoco:
+                        inicio_almoco_valido = max(saida_almoco, entrada_valida)
+                        fim_almoco_valido = min(retorno_almoco, saida_valida)
+                        if fim_almoco_valido > inicio_almoco_valido:
+                            almoco_efetivo_minutos = (fim_almoco_valido - inicio_almoco_valido).total_seconds() / 60
+                else:
+                    # Se for automático, assumimos que o almoço foi "efetivo" (descontado integralmente)
+                    almoco_efetivo_minutos = duracao_almoco_minutos_real
+
                 trabalho_bruto_minutos = 0
                 if saida_valida > entrada_valida:
                     trabalho_bruto_minutos = (saida_valida - entrada_valida).total_seconds() / 60
+                
                 tempo_trabalhado_efetivo = trabalho_bruto_minutos - almoco_efetivo_minutos
+                
                 if tempo_trabalhado_efetivo > 360: min_intervalo_real, termo_intervalo_real = 30, "almoço"
                 elif tempo_trabalhado_efetivo > 240: min_intervalo_real, termo_intervalo_real = 15, "intervalo"
                 else: min_intervalo_real, termo_intervalo_real = 0, "intervalo"
@@ -420,11 +477,19 @@ if st.session_state.show_results:
                 if min_intervalo_real > 0 and duracao_almoco_minutos_real < min_intervalo_real:
                     valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min*"
                     footnote = f"<p style='font-size: 0.75rem; color: gray; text-align: center; margin-top: 1rem;'>*Seu tempo de {termo_intervalo_real} foi menor que o mínimo de {min_intervalo_real} minutos. Para os cálculos, foi considerado o valor mínimo obrigatório.</p>"
-                
+                elif usar_intervalo_auto and duracao_almoco_minutos_real > 0:
+                     valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min (Auto)"
+
                 duracao_almoço_para_calculo = max(min_intervalo_real, almoco_efetivo_minutos)
                 trabalho_liquido_minutos = trabalho_bruto_minutos - duracao_almoço_para_calculo
                 saldo_banco_horas_minutos = trabalho_liquido_minutos - 480
+                
                 tempo_nucleo_minutos = calcular_tempo_nucleo(entrada_valida, saida_valida, saida_almoco, retorno_almoco)
+                
+                # Se for intervalo automático, descontamos o almoço do tempo de núcleo (assumindo que ocorreu no núcleo)
+                if usar_intervalo_auto and duracao_almoco_minutos_real > 0:
+                    tempo_nucleo_minutos = max(0, tempo_nucleo_minutos - duracao_almoco_minutos_real)
+
                 if tempo_nucleo_minutos < 300:
                     warnings_html += '<div class="custom-warning">Atenção: Não cumpriu as 5h obrigatórias no período núcleo.</div>'
                 lista_de_permanencia = []
@@ -454,22 +519,6 @@ if st.session_state.show_results:
                     sinal = "+" if saldo_banco_horas_minutos >= 0 else "-"
                     summary_grid_html = f"""<div class="summary-grid-container"><div class="metric-custom"><div class="label">Total Trabalhado</div><div class="value">{formatar_duracao(trabalho_liquido_minutos)}</div></div><div class="metric-custom"><div class="label">Tempo no Núcleo</div><div class="value">{formatar_duracao(tempo_nucleo_minutos)}</div></div><div class="metric-custom metric-almoco"><div class="label">Tempo de {termo_intervalo_real}</div><div class="value">{valor_almoco_display}</div></div><div class="metric-custom {saldo_css_class}"><div class="label">Saldo do Dia</div><div class="value">{sinal} {formatar_duracao(abs(saldo_banco_horas_minutos))}</div></div></div>"""
                     st.markdown(summary_grid_html, unsafe_allow_html=True)
-                    
-                    # --- FEATURE NOVA: BARRA DE PROGRESSO DA JORNADA ---
-                    percentual = trabalho_liquido_minutos / 480
-                    percentual_limite = min(percentual, 1.0)
-                    cor_barra = "green" if percentual >= 1.0 else "rgb(221, 79, 5)"
-                    st.markdown(f"""
-                    <div style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
-                        <p style="text-align: center; color: gray; font-size: 0.85rem; margin-bottom: 0.2rem;">Progresso da Jornada (8h)</p>
-                        <div style="width: 100%; background-color: #e0e0e0; border-radius: 10px; height: 10px;">
-                            <div style="width: {percentual_limite*100}%; background-color: {cor_barra}; height: 10px; border-radius: 10px; transition: width 0.5s;"></div>
-                        </div>
-                        <p style="text-align: center; font-size: 0.8rem; margin-top: 0.2rem;">{percentual*100:.0f}% concluído</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    # ---------------------------------------------------
-
                     st.markdown(footnote, unsafe_allow_html=True)
 
                 st.markdown(warnings_html, unsafe_allow_html=True)
