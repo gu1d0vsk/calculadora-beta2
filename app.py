@@ -254,6 +254,18 @@ st.markdown("""
         margin-bottom: 1rem;
     }
 
+    /* Centralização e Fonte do Checkbox */
+    div[data-testid="stCheckbox"] {
+        display: flex;
+        justify-content: center;
+        margin-top: -10px;
+        padding-bottom: 10px;
+    }
+    div[data-testid="stCheckbox"] label span p {
+        font-size: 0.85rem !important;
+        color: #555;
+    }
+
     @media (max-width: 640px) {
         .predictions-grid-container { grid-template-columns: repeat(2, 1fr); }
         .predictions-grid-container .metric-minimo { order: 2; }
@@ -275,7 +287,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-
 mensagem_do_dia = obter_mensagem_do_dia()
 st.markdown(f'<p class="main-title">{mensagem_do_dia}</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Informe seus horários para calcular a jornada diária</p>', unsafe_allow_html=True)
@@ -287,7 +298,8 @@ with col_main:
     entrada_str = st.text_input("Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
     
     # --- CHECKBOX DE INTERVALO AUTOMÁTICO ---
-    usar_intervalo_auto = st.checkbox("✅ Intervalo Automático (Mínimo)", help="Calcula o desconto automático (30min ou 15min) sem precisar digitar os horários de almoço.")
+    # Agora definido como True por padrão e sem o emoji
+    usar_intervalo_auto = st.checkbox("Intervalo Automático (Mínimo)", value=True, help="Calcula o desconto automático (30min ou 15min) sem precisar digitar os horários de almoço.")
     
     if not usar_intervalo_auto:
         col1, col2 = st.columns(2)
