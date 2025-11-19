@@ -59,16 +59,13 @@ def get_weather_icon(wmo_code):
         return "🌡️"
 
 @st.cache_data(ttl=10800) # Cache de 3 horas
-def get_daily_weather(dia_offset=0):
+def get_daily_weather():
     """Busca a previsão de temperatura, chuva, UV e ícone para o dia no Rio de Janeiro."""
     try:
         lat = -22.93
         lon = -43.17
         fuso_horario_brasil = "America/Sao_Paulo"
-        fuso = pytz.timezone(fuso_horario_brasil)
-        data_alvo = (datetime.datetime.now(fuso) + datetime.timedelta(days=dia_offset)).strftime('%Y-%m-%d')
-        
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&hourly=uv_index&timezone={fuso_horario_brasil}&start_date={data_alvo}&end_date={data_alvo}"
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&hourly=uv_index&timezone={fuso_horario_brasil}&forecast_days=1"
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
@@ -83,10 +80,8 @@ def get_daily_weather(dia_offset=0):
         hourly_data = data['hourly']
         uv_index_midday = hourly_data['uv_index'][12]
         
-        prefixo_dia = "Hoje" if dia_offset == 0 else "Amanhã"
-        
         forecast_parts = [
-            f"{icon} {prefixo_dia} no Rio: Mínima de {temp_min:.0f}°C e Máxima de {temp_max:.0f}°C",
+            f"{icon} Hoje no Rio: Mínima de {temp_min:.0f}°C e Máxima de {temp_max:.0f}°C",
             f"💧 {rain_prob:.0f}%"
         ]
         
@@ -151,6 +146,7 @@ def verificar_eventos_proximos():
             mensagens.append(mensagem)
     return mensagens
 
+# --- NOVA FUNÇÃO ---
 def gerar_contagem_regressiva_home_office():
     """Gera a string de contagem regressiva para o home office."""
     try:
@@ -275,7 +271,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
 mensagem_do_dia = obter_mensagem_do_dia()
 st.markdown(f'<p class="main-title">{mensagem_do_dia}</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Informe seus horários para calcular a jornada diária</p>', unsafe_allow_html=True)
@@ -328,9 +323,11 @@ if st.session_state.show_results:
         try:
             hora_entrada = datetime.datetime.strptime(formatar_hora_input(entrada_str), "%H:%M")
             
+            # --- CORREÇÃO DO BUG DAS 7H NA PREVISÃO ---
+            limite_inicio_jornada_previsao = hora_entrada.replace(hour=7, minute=0, second=0, microsecond=0)
+            entrada_valida_previsao = max(hora_entrada, limite_inicio_jornada_previsao)
+            
             predictions_container_class = "predictions-wrapper"
-            warnings_html = ""
-            footnote = ""
 
             limite_saida = hora_entrada.replace(hour=20, minute=0, second=0, microsecond=0)
             duracao_almoço_previsao = 0
@@ -338,15 +335,12 @@ if st.session_state.show_results:
                 saida_almoco_prev = datetime.datetime.strptime(formatar_hora_input(saida_almoco_str), "%H:%M")
                 retorno_almoco_prev = datetime.datetime.strptime(formatar_hora_input(retorno_almoco_str), "%H:%M")
                 duracao_almoço_previsao = (retorno_almoco_prev - saida_almoco_prev).total_seconds() / 60
-                if duracao_almoço_previsao >= 120:
-                    warnings_html += '<div class="custom-warning">🥪 Atenção: Intervalos superiores a 2 horas podem desconsiderar a marcação de ponto.</div>'
-
             
             hora_nucleo_inicio = hora_entrada.replace(hour=9, minute=0)
             
             tempo_antes_nucleo_min = 0
-            if hora_entrada < hora_nucleo_inicio:
-                tempo_antes_nucleo_min = (hora_nucleo_inicio - hora_entrada).total_seconds() / 60
+            if entrada_valida_previsao < hora_nucleo_inicio:
+                tempo_antes_nucleo_min = (hora_nucleo_inicio - entrada_valida_previsao).total_seconds() / 60
 
             jornada_total_minima_min = (5 * 60) + tempo_antes_nucleo_min
             
@@ -357,20 +351,22 @@ if st.session_state.show_results:
 
             minutos_intervalo_5h = max(intervalo_obrigatorio_5h, duracao_almoço_previsao)
 
-            hora_base_5h = max(hora_entrada, hora_nucleo_inicio)
+            hora_base_5h = max(entrada_valida_previsao, hora_nucleo_inicio)
             hora_saida_5h_calculada = hora_base_5h + datetime.timedelta(hours=5, minutes=minutos_intervalo_5h)
             hora_saida_5h = min(hora_saida_5h_calculada, limite_saida)
             
             minutos_intervalo_demais = max(30, duracao_almoço_previsao)
-            hora_saida_8h_calculada = hora_entrada + datetime.timedelta(hours=8, minutes=minutos_intervalo_demais)
+            
+            # Previsões usando entrada validada
+            hora_saida_8h_calculada = entrada_valida_previsao + datetime.timedelta(hours=8, minutes=minutos_intervalo_demais)
             hora_saida_8h = min(hora_saida_8h_calculada, limite_saida)
 
-            hora_saida_10h_calculada = hora_entrada + datetime.timedelta(hours=10, minutes=minutos_intervalo_demais)
+            hora_saida_10h_calculada = entrada_valida_previsao + datetime.timedelta(hours=10, minutes=minutos_intervalo_demais)
             hora_saida_10h = min(hora_saida_10h_calculada, limite_saida)
 
-            duracao_5h_min = (hora_saida_5h - hora_entrada).total_seconds() / 60 - minutos_intervalo_5h
-            duracao_8h_min = (hora_saida_8h - hora_entrada).total_seconds() / 60 - minutos_intervalo_demais
-            duracao_10h_min = (hora_saida_10h - hora_entrada).total_seconds() / 60 - minutos_intervalo_demais
+            duracao_5h_min = (hora_saida_5h - entrada_valida_previsao).total_seconds() / 60 - minutos_intervalo_5h
+            duracao_8h_min = (hora_saida_8h - entrada_valida_previsao).total_seconds() / 60 - minutos_intervalo_demais
+            duracao_10h_min = (hora_saida_10h - entrada_valida_previsao).total_seconds() / 60 - minutos_intervalo_demais
             
             texto_desc_5h = f"({formatar_duracao(duracao_5h_min)})" if hora_saida_5h_calculada > limite_saida else "(5h no núcleo)"
             texto_desc_8h = f"({formatar_duracao(duracao_8h_min)})" if hora_saida_8h_calculada > limite_saida else "(8h)"
@@ -383,16 +379,21 @@ if st.session_state.show_results:
             
             predictions_html = f"""<div class='section-container'><h3>Previsões de Saída</h3><div class="predictions-grid-container"><div class="metric-custom metric-minimo"><div class="label">Mínimo {texto_desc_5h}</div><div class="value">{hora_saida_5h.strftime('%H:%M')}</div><div class="details">{minutos_intervalo_5h:.0f}min de {termo_intervalo_5h}</div></div><div class="metric-custom metric-padrao"><div class="label">Jornada Padrão {texto_desc_8h}</div><div class="value">{hora_saida_8h.strftime('%H:%M')}</div><div class="details">{minutos_intervalo_demais:.0f}min de almoço</div></div><div class="metric-custom metric-maximo"><div class="label">Máximo {texto_desc_10h}</div><div class="value">{hora_saida_10h.strftime('%H:%M')}</div><div class="details">{minutos_intervalo_demais:.0f}min de almoço</div></div></div></div>"""
             
+            footnote = ""
+            warnings_html = ""
             if saida_real_str:
                 predictions_container_class += " de-emphasized"
                 
                 hora_saida_real = datetime.datetime.strptime(formatar_hora_input(saida_real_str), "%H:%M")
                 if hora_saida_real < hora_entrada:
                     raise ValueError("A Saída deve ser depois da Entrada.")
+                
                 limite_inicio_jornada = hora_entrada.replace(hour=7, minute=0, second=0, microsecond=0)
                 limite_fim_jornada = hora_entrada.replace(hour=20, minute=0, second=0, microsecond=0)
+                
                 entrada_valida = max(hora_entrada, limite_inicio_jornada)
                 saida_valida = min(hora_saida_real, limite_fim_jornada)
+                
                 duracao_almoco_minutos_real = 0
                 saida_almoco, retorno_almoco = None, None
                 if saida_almoco_str and retorno_almoco_str:
@@ -453,6 +454,22 @@ if st.session_state.show_results:
                     sinal = "+" if saldo_banco_horas_minutos >= 0 else "-"
                     summary_grid_html = f"""<div class="summary-grid-container"><div class="metric-custom"><div class="label">Total Trabalhado</div><div class="value">{formatar_duracao(trabalho_liquido_minutos)}</div></div><div class="metric-custom"><div class="label">Tempo no Núcleo</div><div class="value">{formatar_duracao(tempo_nucleo_minutos)}</div></div><div class="metric-custom metric-almoco"><div class="label">Tempo de {termo_intervalo_real}</div><div class="value">{valor_almoco_display}</div></div><div class="metric-custom {saldo_css_class}"><div class="label">Saldo do Dia</div><div class="value">{sinal} {formatar_duracao(abs(saldo_banco_horas_minutos))}</div></div></div>"""
                     st.markdown(summary_grid_html, unsafe_allow_html=True)
+                    
+                    # --- FEATURE NOVA: BARRA DE PROGRESSO DA JORNADA ---
+                    percentual = trabalho_liquido_minutos / 480
+                    percentual_limite = min(percentual, 1.0)
+                    cor_barra = "green" if percentual >= 1.0 else "orange"
+                    st.markdown(f"""
+                    <div style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                        <p style="text-align: center; color: gray; font-size: 0.85rem; margin-bottom: 0.2rem;">Progresso da Jornada (8h)</p>
+                        <div style="width: 100%; background-color: #e0e0e0; border-radius: 10px; height: 10px;">
+                            <div style="width: {percentual_limite*100}%; background-color: {cor_barra}; height: 10px; border-radius: 10px; transition: width 0.5s;"></div>
+                        </div>
+                        <p style="text-align: center; font-size: 0.8rem; margin-top: 0.2rem;">{percentual*100:.0f}% concluído</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    # ---------------------------------------------------
+
                     st.markdown(footnote, unsafe_allow_html=True)
 
                 st.markdown(warnings_html, unsafe_allow_html=True)
@@ -465,15 +482,7 @@ if st.session_state.show_results:
         finally:
             st.session_state.show_results = False
 
-fuso = pytz.timezone("America/Sao_Paulo")
-hora_atual = datetime.datetime.now(fuso).hour
-offset = 1 if hora_atual >= 20 else 0
-
-daily_forecast = get_daily_weather(dia_offset=offset)
+daily_forecast = get_daily_weather()
 if daily_forecast:
     st.markdown("---")
     st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{daily_forecast}</p>", unsafe_allow_html=True)
-
-contagem_regressiva = gerar_contagem_regressiva_home_office()
-if contagem_regressiva:
-    st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{contagem_regressiva}</p>", unsafe_allow_html=True)
