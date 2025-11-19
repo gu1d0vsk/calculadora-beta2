@@ -458,7 +458,7 @@ if st.session_state.show_results:
                     # --- FEATURE NOVA: BARRA DE PROGRESSO DA JORNADA ---
                     percentual = trabalho_liquido_minutos / 480
                     percentual_limite = min(percentual, 1.0)
-                    cor_barra = "green" if percentual >= 1.0 else "orange"
+                    cor_barra = "green" if percentual >= 1.0 else "rgb(221, 79, 5)"
                     st.markdown(f"""
                     <div style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
                         <p style="text-align: center; color: gray; font-size: 0.85rem; margin-bottom: 0.2rem;">Progresso da Jornada (8h)</p>
