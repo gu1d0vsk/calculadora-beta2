@@ -258,8 +258,8 @@ st.markdown("""
     div[data-testid="stCheckbox"] {
         display: flex;
         justify-content: center;
-        margin-top: -10px;
-        padding-bottom: 10px;
+        margin-top: 0px;
+        padding-bottom: 0px;
     }
     div[data-testid="stCheckbox"] label span p {
         font-size: 0.85rem !important;
