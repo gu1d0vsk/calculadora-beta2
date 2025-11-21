@@ -79,14 +79,14 @@ def render_carousel(items):
             justify-content: center;
             padding: 10px;
             text-decoration: none;
-            color: #333;
+            color: white;
             transition: transform 0.2s;
         }
         .news-card:hover {
             transform: translateY(-2px);
             border-color: #ccc;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            color: #005051;
+            color: rgb(221, 79, 5);
         }
 
         /* Título do cartão */
