@@ -292,7 +292,7 @@ st.markdown("""
     img._profileImage_gzau3_78._lightThemeShadow_gzau3_95 {    display: none;}
     ._container_gzau3_1 {      display: none;}
     ._profileImage_gzau3_78 {    display: none;}
-
+    .st-emotion-cache-1sss6mo {    display: none !important;}
 
 
 </style>
