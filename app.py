@@ -3,7 +3,9 @@ import datetime
 import time
 from eventos import *
 from mensagens import obter_mensagem_do_dia
-from noticias_finep import get_finep_news, render_carousel
+# --- IMPORT CORRIGIDO ---
+from noticias_finep import get_finep_news, render_footer_carousel
+# ------------------------
 import requests
 import pytz
 
@@ -259,8 +261,8 @@ st.markdown("""
     div[data-testid="stCheckbox"] {
         display: flex;
         justify-content: center;
-        margin-top: 0px;
-        padding-bottom: 0px;
+        margin-top: -10px;
+        padding-bottom: 10px;
     }
     div[data-testid="stCheckbox"] label span p {
         font-size: 0.85rem !important;
@@ -283,8 +285,6 @@ st.markdown("""
     .st-at {    border-top-left-radius: 1.5rem;}
     .st-emotion-cache-yinll1 svg { display: none; } 
     .st-emotion-cache-ubko3j svg { display: none; }
-    .st-emotion-cache-467cry hr:not([size]) {    display: none;}
-    .st-emotion-cache-zh2fnc {    place-items: center; width: auto !important;}
 
 </style>
 """, unsafe_allow_html=True)
@@ -535,11 +535,8 @@ if daily_forecast:
     st.markdown("---")
     st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{daily_forecast}</p>", unsafe_allow_html=True)
 
-# --- CARROSSEL DE NOTÍCIAS (CARDS NO RODAPÉ) ---
-# Importar a função (atualize o nome se necessário ou mantenha render_carousel no import se manteve o nome do arquivo)
-from noticias_finep import get_finep_news, render_footer_carousel
-
-# Adiciona bastante espaço vazio no final da página para o rodapé não tapar o conteúdo
+# --- CARROSSEL DE NOTÍCIAS (RODAPÉ FIXO) ---
+# Espaço vazio para garantir que o conteúdo final não fique escondido atrás da barra fixa
 st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)
 
 try:
@@ -548,4 +545,4 @@ try:
         render_footer_carousel(news)
 except Exception:
     pass
-# -----------------------------------------------
+# -------------------------------------------
