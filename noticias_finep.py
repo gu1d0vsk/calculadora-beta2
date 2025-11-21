@@ -91,8 +91,8 @@ def render_carousel(items):
 
         /* Título do cartão */
         .news-title {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 10px;
+            font-weight: 300;
             text-align: center;
             line-height: 1.3;
             
