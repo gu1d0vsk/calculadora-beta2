@@ -536,7 +536,7 @@ if daily_forecast:
     st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{daily_forecast}</p>", unsafe_allow_html=True)
 # --- CARROSSEL DE NOTÍCIAS (NO FINAL) ---
 st.markdown("---")
-st.subheader("📰 Últimas Notícias - FINEP")
+st.markdown("<p style='font-weight: bold; color: gray; font-size: 16px; margin-bottom: 10px;'>Últimas Notícias</p>", unsafe_allow_html=True)
 try:
     # Tenta buscar as notícias. Se falhar (sem internet ou site fora), não quebra o app.
     news = get_finep_news()
