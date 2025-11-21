@@ -121,9 +121,9 @@ def render_carousel(items):
             user-select: none;
         }
         .nav-btn:hover {
-            background-color: #f0f2f6;
+            background-color:;
             color: #000;
-            border-color: #bbb;
+            border-color: ;
         }
         .nav-btn:active {
             transform: scale(0.65);
