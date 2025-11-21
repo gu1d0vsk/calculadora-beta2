@@ -62,8 +62,8 @@ def render_carousel(items):
 
         /* O Cartão individual */
         .news-card {
-            background: white;
-            border: 1px solid #eee;
+            background: rgb(0 80 81);
+            border: px solid #eee;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             
@@ -77,7 +77,7 @@ def render_carousel(items):
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 15px;
+            padding: 10px;
             text-decoration: none;
             color: #333;
             transition: transform 0.2s;
@@ -91,8 +91,8 @@ def render_carousel(items):
 
         /* Título do cartão */
         .news-title {
-            font-size: 10px;
-            font-weight: 300;
+            font-size: 14px;
+            font-weight: 600;
             text-align: center;
             line-height: 1.3;
             
