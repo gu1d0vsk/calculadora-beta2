@@ -8,7 +8,8 @@ def get_finep_news():
     Retorna uma lista de dicionários com título, link, imagem e data.
     """
     try:
-        rss_url = "http://www.finep.gov.br/component/ninjarsssyndicator/?feed_id=1&format=raw"
+        # Usando HTTPS no RSS também para evitar problemas
+        rss_url = "https://www.finep.gov.br/component/ninjarsssyndicator/?feed_id=1&format=raw"
         feed = feedparser.parse(rss_url)
         
         news_items = []
@@ -27,10 +28,20 @@ def get_finep_news():
                 img_tag = soup.find('img')
                 if img_tag and img_tag.get('src'):
                     image_url = img_tag['src']
-                    if image_url.startswith('/'):
-                        image_url = "http://www.finep.gov.br" + image_url
+            
+            # --- CORREÇÃO DE HTTP/HTTPS E CAMINHOS RELATIVOS ---
+            if image_url:
+                # Se for caminho relativo (ex: /images/foto.jpg), completa com o dominio
+                if image_url.startswith('/'):
+                    image_url = "https://www.finep.gov.br" + image_url
+                
+                # Se a url vier como http://, força a mudança para https://
+                # Isso resolve o problema de imagens quebradas no Streamlit Cloud
+                if image_url.startswith('http:'):
+                    image_url = image_url.replace('http:', 'https:')
+            # ---------------------------------------------------
 
-            # Imagem padrão (Logo)
+            # Imagem padrão (Logo) se não encontrar nada
             if not image_url:
                 image_url = "https://www.finep.gov.br/images/logo_finep.png"
 
