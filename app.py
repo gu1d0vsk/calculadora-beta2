@@ -534,32 +534,18 @@ daily_forecast = get_daily_weather()
 if daily_forecast:
     st.markdown("---")
     st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{daily_forecast}</p>", unsafe_allow_html=True)
-# --- CARROSSEL DE NOTÍCIAS (RODAPÉ FULL WIDTH) ---
-# CSS Hack para expandir o container do iframe para a largura total da tela
-st.markdown("""
-<style>
-    /* Identifica o container do componente HTML e força a largura total */
-    div[data-testid="stBlock"] iframe[title="streamlit.components.v1.html"] {
-        width: 100vw !important;
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-    }
-</style>
-""", unsafe_allow_html=True)
 
-st.markdown("---")
-# Título Centralizado
-st.markdown("<h3 style='text-align: center; color: gray; font-size: 18px; margin-bottom: 15px;'>Últimas Notícias - FINEP</h3>", unsafe_allow_html=True)
+# --- CARROSSEL DE NOTÍCIAS (CARDS NO RODAPÉ) ---
+# Importar a função (atualize o nome se necessário ou mantenha render_carousel no import se manteve o nome do arquivo)
+from noticias_finep import get_finep_news, render_footer_carousel
+
+# Adiciona bastante espaço vazio no final da página para o rodapé não tapar o conteúdo
+st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)
 
 try:
     news = get_finep_news()
     if news:
-        render_carousel(news)
-    else:
-        st.info("Não foi possível carregar as notícias no momento.")
-except Exception as e:
-    st.error("Erro ao carregar o feed de notícias.")
-# -------------------------------------------------
+        render_footer_carousel(news)
+except Exception:
+    pass
+# -----------------------------------------------
