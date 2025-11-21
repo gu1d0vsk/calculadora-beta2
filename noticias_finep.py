@@ -1,55 +1,21 @@
 import streamlit.components.v1 as components
 import feedparser
-from bs4 import BeautifulSoup
 
 def get_finep_news():
     """
-    Busca e processa as notícias do RSS da Finep.
-    Retorna uma lista de dicionários com título, link, imagem e data.
+    Busca as notícias do RSS da Finep (apenas título e link).
     """
     try:
-        # Usando HTTPS no RSS também para evitar problemas
+        # URL do RSS
         rss_url = "https://www.finep.gov.br/component/ninjarsssyndicator/?feed_id=1&format=raw"
         feed = feedparser.parse(rss_url)
         
         news_items = []
         
         for entry in feed.entries:
-            image_url = ""
-            # Tenta extrair imagem de 'media_content' ou 'enclosures'
-            if 'media_content' in entry:
-                image_url = entry.media_content[0]['url']
-            elif 'enclosures' in entry and len(entry.enclosures) > 0:
-                 image_url = entry.enclosures[0]['href']
-            
-            # Se falhar, tenta extrair do HTML da descrição
-            if not image_url and 'description' in entry:
-                soup = BeautifulSoup(entry.description, 'html.parser')
-                img_tag = soup.find('img')
-                if img_tag and img_tag.get('src'):
-                    image_url = img_tag['src']
-            
-            # --- CORREÇÃO DE HTTP/HTTPS E CAMINHOS RELATIVOS ---
-            if image_url:
-                # Se for caminho relativo (ex: /images/foto.jpg), completa com o dominio
-                if image_url.startswith('/'):
-                    image_url = "https://www.finep.gov.br" + image_url
-                
-                # Se a url vier como http://, força a mudança para https://
-                # Isso resolve o problema de imagens quebradas no Streamlit Cloud
-                if image_url.startswith('http:'):
-                    image_url = image_url.replace('http:', 'https:')
-            # ---------------------------------------------------
-
-            # Imagem padrão (Logo) se não encontrar nada
-            if not image_url:
-                image_url = "https://www.finep.gov.br/images/logo_finep.png"
-
             news_items.append({
                 "title": entry.title,
-                "link": entry.link,
-                "published": entry.published,
-                "image": image_url
+                "link": entry.link
             })
             
         return news_items
@@ -59,7 +25,7 @@ def get_finep_news():
 
 def render_carousel(items):
     """
-    Gera o HTML e CSS para o carrossel e o renderiza no Streamlit.
+    Gera o HTML e CSS para o carrossel de texto e o renderiza.
     """
     css = """
     <style>
@@ -67,63 +33,55 @@ def render_carousel(items):
             display: flex;
             overflow-x: auto;
             scroll-behavior: smooth;
-            padding: 20px 0;
-            gap: 20px;
+            padding: 15px 5px;
+            gap: 15px;
             scrollbar-width: thin;
         }
         .carousel-container::-webkit-scrollbar {
-            height: 8px;
+            height: 6px;
         }
         .carousel-container::-webkit-scrollbar-thumb {
-            background-color: #ccc;
-            border-radius: 4px;
+            background-color: #ddd;
+            border-radius: 3px;
         }
         .news-card {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            min-width: 300px;
-            max-width: 300px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            border: 1px solid #eee;
+            
+            /* Tamanho do cartão */
+            min-width: 280px;
+            max-width: 280px;
+            height: 140px; /* Altura fixa para alinhar */
+            
             display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: transform 0.2s;
+            align-items: center; /* Centraliza verticalmente */
+            justify-content: center; /* Centraliza horizontalmente */
+            
+            padding: 20px;
             text-decoration: none;
-            color: inherit;
+            color: #333;
             font-family: sans-serif;
-            border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
         }
         .news-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
-        }
-        .card-image {
-            height: 150px;
-            width: 100%;
-            object-fit: cover;
-        }
-        .card-content {
-            padding: 15px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+            border-color: #ddd;
+            color: #005051; /* Muda a cor do texto ao passar o mouse (verde escuro) */
         }
         .news-title {
             font-size: 15px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
+            font-weight: 600;
+            line-height: 1.4;
+            text-align: center;
+            
+            /* Lógica para cortar apenas se for MUITO grande (8 linhas) */
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 8; 
             -webkit-box-orient: vertical;
             overflow: hidden;
-            line-height: 1.4;
-        }
-        .news-date {
-            font-size: 11px;
-            color: #888;
-            margin-top: auto;
         }
     </style>
     """
@@ -132,11 +90,7 @@ def render_carousel(items):
     for item in items:
         cards_html += f"""
         <a href="{item['link']}" target="_blank" class="news-card">
-            <img src="{item['image']}" class="card-image" alt="Imagem da notícia">
-            <div class="card-content">
-                <div class="news-title">{item['title']}</div>
-                <div class="news-date">{item['published']}</div>
-            </div>
+            <div class="news-title">{item['title']}</div>
         </a>
         """
 
@@ -147,4 +101,5 @@ def render_carousel(items):
     </div>
     """
     
-    components.html(full_html, height=320, scrolling=False)
+    # Altura do componente ajustada para caber o cartão + scrollbar
+    components.html(full_html, height=180, scrolling=False)
