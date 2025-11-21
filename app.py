@@ -212,7 +212,7 @@ st.markdown("""
     .main .block-container { max-width: 800px; }
     .main-title { font-size: 2.2rem !important; font-weight: bold; text-align: center; }
     .sub-title { color: gray; text-align: center; font-size: 1.25rem !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) div[data-testid="stButton"] > button { background-color: rgb(221, 79, 5) !important; color: #FFFFFF !important; border-radius: 4rem; }
+    div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) div[data-testid="stButton"] > button { background-color: rgb(221, 79, 5) !important; color: #FFFFFF !important; border-radius: 4rem; border-color: transparent;}
     div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) div[data-testid="stButton"] > button { background-color: rgb(0, 80, 81) !important; color: #FFFFFF !important; border-radius: 4rem; }
     div[data-testid="stTextInput"] input { border-radius: 1.5rem !important; text-align: center; font-weight: 600; }
     .main div[data-testid="stTextInput"] > label { text-align: center !important; width: 100%; display: block; }
