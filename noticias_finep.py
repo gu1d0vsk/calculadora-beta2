@@ -34,7 +34,7 @@ def render_carousel(items):
         .slider-wrapper {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0px;
             font-family: sans-serif;
             width: 100%;
         }
