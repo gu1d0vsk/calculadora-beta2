@@ -208,6 +208,8 @@ st.set_page_config(page_title="Calculadora de Jornada", layout="centered")
 
 st.markdown("""
 <style>
+    .stApp {       background: rgb(255,255,255);        background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(235,245,245,1) 100%);        background-attachment: fixed; /* Garante que o gradiente não se repita no scroll */
+    }
     div.block-container { padding-top: 4rem; }
     .main .block-container { max-width: 800px; }
     .main-title { font-size: 2.2rem !important; font-weight: bold; text-align: center; }
