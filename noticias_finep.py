@@ -45,7 +45,7 @@ def render_carousel(items):
             overflow-x: auto;
             scroll-behavior: smooth;
             gap: 15px;
-            padding: 10px 5px;
+            padding: 10px 2px;
             width: 100%;
             
             /* Esconder Scrollbar (Chrome/Safari/Opera) */
@@ -126,7 +126,7 @@ def render_carousel(items):
             border-color: #bbb;
         }
         .nav-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.65);
         }
         
         /* Ajuste para telas muito pequenas (celular): mostra 1 por vez */
