@@ -104,8 +104,8 @@ def render_carousel(items):
 
         /* Botões de Seta */
         .nav-btn {
-            background-color: white;
-            border: 1px solid #ddd;
+            background-color:;
+            border: 0px solid #ddd;
             border-radius: 50%;
             width: 32px;
             height: 32px;
