@@ -1,4 +1,4 @@
-[Theme]
+[theme]
 base = "light"               # Força o tema claro, ignorando o sistema do usuário
 primaryColor = "#DD4F05"     # Cor laranja dos seus botões principais
 backgroundColor = "#FFFFFF"  # Cor de fundo da página
