@@ -285,6 +285,12 @@ st.markdown("""
     .st-emotion-cache-467cry hr:not([size]) {    display: none;}
     .st-emotion-cache-zh2fnc {    place-items: center; width: auto !important;}
     .st-emotion-cache-3uj0rx hr:not([size]) { display: none;}
+    .st-emotion-cache-14vh5up {    display: none;}
+    a._container_gzau3_1._viewerBadge_nim44_23 {    display: none;}
+    .st-emotion-cache-scp8yw.e3g0k5y6 {    display: none;}
+    img._profileImage_gzau3_78._lightThemeShadow_gzau3_95 {    display: none;}
+
+
 
 </style>
 """, unsafe_allow_html=True)
