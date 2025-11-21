@@ -289,6 +289,8 @@ st.markdown("""
     a._container_gzau3_1._viewerBadge_nim44_23 {    display: none;}
     .st-emotion-cache-scp8yw.e3g0k5y6 {    display: none;}
     img._profileImage_gzau3_78._lightThemeShadow_gzau3_95 {    display: none;}
+    ._container_gzau3_1 {      display: none;}
+    ._profileImage_gzau3_78 {    display: none;}
 
 
 
