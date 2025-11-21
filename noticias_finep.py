@@ -77,7 +77,7 @@ def render_carousel(items):
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px;
+            padding: 0px;
             text-decoration: none;
             color: white;
             transition: transform 0.2s;
@@ -91,7 +91,7 @@ def render_carousel(items):
 
         /* Título do cartão */
         .news-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             text-align: center;
             line-height: 1.3;
@@ -107,9 +107,9 @@ def render_carousel(items):
             background-color:;
             border: 0px solid #ddd;
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            min-width: 32px; /* impede de esmagar */
+            width: 0px;
+            height: 0px;
+            min-width: 10px; /* impede de esmagar */
             display: flex;
             align-items: center;
             justify-content: center;
