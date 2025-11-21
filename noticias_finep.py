@@ -24,128 +24,122 @@ def get_finep_news():
 
 def render_carousel(items):
     """
-    Gera o HTML/CSS/JS para um carrossel com setas de navegação.
+    Gera o HTML/CSS/JS para um carrossel full-width.
     """
     
-    # CSS para esconder a barra de rolagem e estilizar as setas
     css = """
     <style>
-        /* Container principal que segura setas e o trilho */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: transparent;
+        }
+        
         .slider-wrapper {
             display: flex;
             align-items: center;
-            gap: 0px;
-            font-family: sans-serif;
+            gap: 15px;
+            font-family: 'Source Sans Pro', sans-serif;
             width: 100%;
+            padding: 0 20px; /* Margem lateral de segurança */
+            box-sizing: border-box;
         }
 
-        /* O trilho onde ficam os cartões (esconde a barra de rolagem) */
         .carousel-track {
             display: flex;
             overflow-x: auto;
             scroll-behavior: smooth;
-            gap: 15px;
-            padding: 10px 2px;
+            gap: 20px;
+            padding: 10px 5px;
             width: 100%;
-            
-            /* Esconder Scrollbar (Chrome/Safari/Opera) */
             -webkit-overflow-scrolling: touch;
         }
         .carousel-track::-webkit-scrollbar {
             display: none;
         }
-        /* Esconder Scrollbar (Firefox/IE/Edge) */
         .carousel-track {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
 
-        /* O Cartão individual */
         .news-card {
-            background: rgb(0 80 81);
-            border: px solid #eee;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            /* Cor do fundo igual ao print (Verde Petróleo/Finep) */
+            background-color: #004d40; 
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             
-            /* Mágica para mostrar 3 por vez: 
-               100% / 3 = 33.33% menos o espaço do gap */
-            min-width: calc(33.33% - 10px); 
-            max-width: calc(33.33% - 10px);
+            /* Lógica para 3 cards ocuparem a tela inteira */
+            min-width: 300px; /* Tamanho mínimo para não esmagar */
+            width: 32%;       /* Tenta ocupar um terço da tela */
             
-            height: 110px;
+            height: 140px;
             
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0px;
+            padding: 20px;
             text-decoration: none;
-            color: white;
-            transition: transform 0.2s;
-        }
-        .news-card:hover {
-            transform: translateY(-2px);
-            border-color: #ccc;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            color: rgb(221, 79, 5);
+            color: white; /* Texto branco */
+            transition: transform 0.2s, background-color 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* Título do cartão */
+        .news-card:hover {
+            transform: translateY(-4px);
+            background-color: #00695c; /* Um pouco mais claro no hover */
+            box-shadow: 0 8px 12px rgba(0,0,0,0.4);
+        }
+
         .news-title {
-            font-size: 13px;
+            font-size: 16px;
             font-weight: 600;
             text-align: center;
-            line-height: 1.3;
+            line-height: 1.4;
+            color: #ffffff;
             
             display: -webkit-box;
-            -webkit-line-clamp: 4;
+            -webkit-line-clamp: 5;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
-        /* Botões de Seta */
+        /* Botões de Navegação */
         .nav-btn {
-            background-color:;
-            border: 0px solid #ddd;
+            background-color: rgba(0,0,0,0.4);
+            color: white;
+            border: none;
             border-radius: 50%;
-            width: 0px;
-            height: 0px;
-            min-width: 10px; /* impede de esmagar */
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 18px;
-            color: #555;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-size: 20px;
             transition: all 0.2s;
             user-select: none;
         }
         .nav-btn:hover {
-            background-color:;
-            color: #000;
-            border-color: ;
-        }
-        .nav-btn:active {
-            transform: scale(0.65);
+            background-color: rgba(0,0,0,0.8);
+            transform: scale(1.1);
         }
         
-        /* Ajuste para telas muito pequenas (celular): mostra 1 por vez */
-        @media (max-width: 600px) {
+        /* Responsividade para celular */
+        @media (max-width: 768px) {
             .news-card {
-                min-width: calc(100% - 5px);
-                max-width: calc(100% - 5px);
+                min-width: 85vw; /* No celular ocupa quase tudo */
             }
         }
     </style>
     """
 
-    # JavaScript para mover o carrossel
     javascript = """
     <script>
         function scrollCarousel(direction) {
             const track = document.getElementById('track');
-            // Pega a largura visível do container
-            const scrollAmount = track.clientWidth;
+            // Rola o equivalente a largura de um card + gap (aprox 320px)
+            const scrollAmount = track.clientWidth / 2;
             
             if (direction === 'left') {
                 track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
@@ -156,7 +150,6 @@ def render_carousel(items):
     </script>
     """
 
-    # Gera os cartões
     cards_html = ""
     for item in items:
         cards_html += f"""
@@ -165,20 +158,17 @@ def render_carousel(items):
         </a>
         """
 
-    # Monta o HTML final com a estrutura de Wrapper > BotãoEsq > Trilho > BotãoDir
     full_html = f"""
     {css}
     <div class="slider-wrapper">
         <div class="nav-btn" onclick="scrollCarousel('left')">&#10094;</div>
-        
         <div class="carousel-track" id="track">
             {cards_html}
         </div>
-        
         <div class="nav-btn" onclick="scrollCarousel('right')">&#10095;</div>
     </div>
     {javascript}
     """
     
-    # Altura ajustada para caber botões e cartões
-    components.html(full_html, height=150, scrolling=False)
+    # Altura um pouco maior para caber sombra e hover
+    components.html(full_html, height=180, scrolling=False)
