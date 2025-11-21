@@ -3,9 +3,6 @@ import datetime
 import time
 from eventos import *
 from mensagens import obter_mensagem_do_dia
-# --- IMPORT CORRIGIDO ---
-from noticias_finep import get_finep_news, render_footer_carousel
-# ------------------------
 import requests
 import pytz
 
@@ -261,8 +258,8 @@ st.markdown("""
     div[data-testid="stCheckbox"] {
         display: flex;
         justify-content: center;
-        margin-top: -10px;
-        padding-bottom: 10px;
+        margin-top: 0px;
+        padding-bottom: 0px;
     }
     div[data-testid="stCheckbox"] label span p {
         font-size: 0.85rem !important;
@@ -285,6 +282,8 @@ st.markdown("""
     .st-at {    border-top-left-radius: 1.5rem;}
     .st-emotion-cache-yinll1 svg { display: none; } 
     .st-emotion-cache-ubko3j svg { display: none; }
+    .st-emotion-cache-467cry hr:not([size]) {    display: none;}
+    .st-emotion-cache-zh2fnc {    place-items: center; width: auto !important;}
 
 </style>
 """, unsafe_allow_html=True)
@@ -534,15 +533,3 @@ daily_forecast = get_daily_weather()
 if daily_forecast:
     st.markdown("---")
     st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{daily_forecast}</p>", unsafe_allow_html=True)
-
-# --- CARROSSEL DE NOTÍCIAS (RODAPÉ FIXO) ---
-# Espaço vazio para garantir que o conteúdo final não fique escondido atrás da barra fixa
-st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)
-
-try:
-    news = get_finep_news()
-    if news:
-        render_footer_carousel(news)
-except Exception:
-    pass
-# -------------------------------------------
