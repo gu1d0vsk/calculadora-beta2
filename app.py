@@ -133,22 +133,19 @@ def verificar_eventos_proximos():
             else:
                 emoji = "🗓️"
             
-            # --- NOVA LÓGICA GRAMATICAL APLICADA AQUI ---
+            # --- NOVA LÓGICA GRAMATICAL ---
             partes_evento = []
             for nome in lista_nomes:
                 nome_limpo = nome.split('(')[0].strip()
                 artigo = obter_artigo(nome_limpo)
-                # Converte artigo 'o'/'a' em 'do'/'da'
                 preposicao = "do" if artigo == "o" else "da"
                 partes_evento.append(f"{preposicao} {nome_limpo}")
 
-            # Junta os itens com vírgula e 'e' no final
             if len(partes_evento) == 1:
                 texto_final = partes_evento[0]
             else:
                 texto_final = ", ".join(partes_evento[:-1]) + " e " + partes_evento[-1]
             
-            # Monta a frase inserindo "o dia" para dar sentido ao "do/da"
             if delta.days == 0:
                 mensagem = f"{emoji} Hoje é o dia {texto_final}!"
             elif delta.days == 1:
@@ -218,7 +215,8 @@ def formatar_duracao(minutos):
     return f"{horas}h {mins}min"
 
 # --- Interface do Web App com Streamlit ---
-st.set_page_config(page_title="Calculadora de Jornada", layout="centered")
+# ADICIONADO page_icon="🧮"
+st.set_page_config(page_title="Calculadora de Jornada", page_icon="⏳", layout="centered")
 
 st.markdown("""
 <style>
