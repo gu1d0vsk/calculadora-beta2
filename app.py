@@ -216,7 +216,7 @@ def formatar_duracao(minutos):
 
 # --- Interface do Web App com Streamlit ---
 # ADICIONADO page_icon="🧮"
-st.set_page_config(page_title="Calculadora de Jornada", page_icon="⏳", layout="centered")
+st.set_page_config(page_title="Calculadora de Jornada", page_icon="⏱️", layout="centered")
 
 st.markdown("""
 <style>
