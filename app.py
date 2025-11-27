@@ -133,7 +133,7 @@ def verificar_eventos_proximos():
             else:
                 emoji = "🗓️"
             
-            # --- NOVA LÓGICA GRAMATICAL ---
+            # --- NOVA LÓGICA GRAMATICAL APLICADA AQUI ---
             partes_evento = []
             for nome in lista_nomes:
                 nome_limpo = nome.split('(')[0].strip()
@@ -222,12 +222,13 @@ st.set_page_config(page_title="Calculadora de Jornada", layout="centered")
 
 st.markdown("""
 <style>
+   
     div.block-container { padding-top: 4rem; }
     .main .block-container { max-width: 800px; }
     .main-title { font-size: 2.2rem !important; font-weight: bold; text-align: center; }
     .sub-title { color: gray; text-align: center; font-size: 1.25rem !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) div[data-testid="stButton"] > button { background-color: rgb(221, 79, 5) !important; color: #FFFFFF !important; border-radius: 4rem; }
-    div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) div[data-testid="stButton"] > button { background-color: rgb(0, 80, 81) !important; color: #FFFFFF !important; border-radius: 4rem; }
+    div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) div[data-testid="stButton"] > button { background-color: rgb(221, 79, 5) !important; color: #FFFFFF !important; border-radius: 4rem; border-color: transparent;}
+    div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) div[data-testid="stButton"] > button { background-color: rgb(0, 80, 81) !important; color: #FFFFFF !important; border-radius: 4rem; border-color: transparent;}
     div[data-testid="stTextInput"] input { border-radius: 1.5rem !important; text-align: center; font-weight: 600; }
     .main div[data-testid="stTextInput"] > label { text-align: center !important; width: 100%; display: block; }
     .results-container, .event-list-container.visible { animation: fadeIn 0.5s ease-out forwards; }
@@ -272,8 +273,8 @@ st.markdown("""
     div[data-testid="stCheckbox"] {
         display: flex;
         justify-content: center;
-        margin-top: -10px;
-        padding-bottom: 10px;
+        margin-top: 0px;
+        padding-bottom: 0px;
     }
     div[data-testid="stCheckbox"] label span p {
         font-size: 0.85rem !important;
@@ -296,6 +297,17 @@ st.markdown("""
     .st-at {    border-top-left-radius: 1.5rem;}
     .st-emotion-cache-yinll1 svg { display: none; } 
     .st-emotion-cache-ubko3j svg { display: none; }
+    .st-emotion-cache-467cry hr:not([size]) {    display: none;}
+    .st-emotion-cache-zh2fnc {    place-items: center; width: auto !important;}
+    .st-emotion-cache-3uj0rx hr:not([size]) { display: none;}
+    .st-emotion-cache-14vh5up {    display: none;}
+    a._container_gzau3_1._viewerBadge_nim44_23 {    display: none;}
+    .st-emotion-cache-scp8yw.e3g0k5y6 {    display: none;}
+    img._profileImage_gzau3_78._lightThemeShadow_gzau3_95 {    display: none;}
+    ._container_gzau3_1 {      display: none;}
+    ._profileImage_gzau3_78 {    display: none;}
+    .st-emotion-cache-1sss6mo {    display: none !important;}
+
 
 </style>
 """, unsafe_allow_html=True)
@@ -312,6 +324,7 @@ with col_main:
     entrada_str = st.text_input("Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
     
     # --- CHECKBOX DE INTERVALO AUTOMÁTICO ---
+    # Agora definido como True por padrão e sem o emoji
     usar_intervalo_auto = st.checkbox("Intervalo Automático (Mínimo)", value=True, help="Calcula o desconto automático (30min ou 15min) sem precisar digitar os horários de almoço.")
     
     if not usar_intervalo_auto:
@@ -544,3 +557,6 @@ daily_forecast = get_daily_weather()
 if daily_forecast:
     st.markdown("---")
     st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{daily_forecast}</p>", unsafe_allow_html=True)
+contagem_regressiva = gerar_contagem_regressiva_home_office()
+if contagem_regressiva:
+    st.markdown(f"<p style='text-align: center; color: gray; font-size: 0.85rem;'>{contagem_regressiva}</p>", unsafe_allow_html=True)
