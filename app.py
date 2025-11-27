@@ -122,6 +122,7 @@ def verificar_eventos_proximos():
             if data not in eventos_agrupados:
                 eventos_agrupados[data] = []
             eventos_agrupados[data].append(nome)
+            
     for data_evento, lista_nomes in sorted(eventos_agrupados.items()):
         delta = data_evento - hoje
         if 0 <= delta.days <= 12:
@@ -131,19 +132,32 @@ def verificar_eventos_proximos():
                 emoji = "❗️"
             else:
                 emoji = "🗓️"
-            nomes_com_artigo = []
+            
+            # --- NOVA LÓGICA GRAMATICAL ---
+            partes_evento = []
             for nome in lista_nomes:
                 nome_limpo = nome.split('(')[0].strip()
                 artigo = obter_artigo(nome_limpo)
-                nomes_com_artigo.append(f"{artigo} {nome_limpo}")
-            nome_evento_final = " e ".join(nomes_com_artigo)
-            if delta.days == 0:
-                mensagem = f"{emoji} Hoje é {nome_evento_final}!"
-            elif delta.days == 1:
-                mensagem = f"{emoji} Amanhã é {nome_evento_final}!"
+                # Converte artigo 'o'/'a' em 'do'/'da'
+                preposicao = "do" if artigo == "o" else "da"
+                partes_evento.append(f"{preposicao} {nome_limpo}")
+
+            # Junta os itens com vírgula e 'e' no final
+            if len(partes_evento) == 1:
+                texto_final = partes_evento[0]
             else:
-                mensagem = f"{emoji} Faltam {delta.days} dias para {nome_evento_final}!"
+                texto_final = ", ".join(partes_evento[:-1]) + " e " + partes_evento[-1]
+            
+            # Monta a frase inserindo "o dia" para dar sentido ao "do/da"
+            if delta.days == 0:
+                mensagem = f"{emoji} Hoje é o dia {texto_final}!"
+            elif delta.days == 1:
+                mensagem = f"{emoji} Amanhã é o dia {texto_final}!"
+            else:
+                mensagem = f"{emoji} Faltam {delta.days} dias para o dia {texto_final}!"
+                
             mensagens.append(mensagem)
+            
     return mensagens
 
 # --- NOVA FUNÇÃO ---
@@ -208,13 +222,12 @@ st.set_page_config(page_title="Calculadora de Jornada", layout="centered")
 
 st.markdown("""
 <style>
-   
     div.block-container { padding-top: 4rem; }
     .main .block-container { max-width: 800px; }
     .main-title { font-size: 2.2rem !important; font-weight: bold; text-align: center; }
     .sub-title { color: gray; text-align: center; font-size: 1.25rem !important; }
-    div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) div[data-testid="stButton"] > button { background-color: rgb(221, 79, 5) !important; color: #FFFFFF !important; border-radius: 4rem; border-color: transparent;}
-    div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) div[data-testid="stButton"] > button { background-color: rgb(0, 80, 81) !important; color: #FFFFFF !important; border-radius: 4rem; border-color: transparent;}
+    div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) div[data-testid="stButton"] > button { background-color: rgb(221, 79, 5) !important; color: #FFFFFF !important; border-radius: 4rem; }
+    div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) div[data-testid="stButton"] > button { background-color: rgb(0, 80, 81) !important; color: #FFFFFF !important; border-radius: 4rem; }
     div[data-testid="stTextInput"] input { border-radius: 1.5rem !important; text-align: center; font-weight: 600; }
     .main div[data-testid="stTextInput"] > label { text-align: center !important; width: 100%; display: block; }
     .results-container, .event-list-container.visible { animation: fadeIn 0.5s ease-out forwards; }
@@ -259,8 +272,8 @@ st.markdown("""
     div[data-testid="stCheckbox"] {
         display: flex;
         justify-content: center;
-        margin-top: 0px;
-        padding-bottom: 0px;
+        margin-top: -10px;
+        padding-bottom: 10px;
     }
     div[data-testid="stCheckbox"] label span p {
         font-size: 0.85rem !important;
@@ -283,17 +296,6 @@ st.markdown("""
     .st-at {    border-top-left-radius: 1.5rem;}
     .st-emotion-cache-yinll1 svg { display: none; } 
     .st-emotion-cache-ubko3j svg { display: none; }
-    .st-emotion-cache-467cry hr:not([size]) {    display: none;}
-    .st-emotion-cache-zh2fnc {    place-items: center; width: auto !important;}
-    .st-emotion-cache-3uj0rx hr:not([size]) { display: none;}
-    .st-emotion-cache-14vh5up {    display: none;}
-    a._container_gzau3_1._viewerBadge_nim44_23 {    display: none;}
-    .st-emotion-cache-scp8yw.e3g0k5y6 {    display: none;}
-    img._profileImage_gzau3_78._lightThemeShadow_gzau3_95 {    display: none;}
-    ._container_gzau3_1 {      display: none;}
-    ._profileImage_gzau3_78 {    display: none;}
-    .st-emotion-cache-1sss6mo {    display: none !important;}
-
 
 </style>
 """, unsafe_allow_html=True)
@@ -310,7 +312,6 @@ with col_main:
     entrada_str = st.text_input("Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
     
     # --- CHECKBOX DE INTERVALO AUTOMÁTICO ---
-    # Agora definido como True por padrão e sem o emoji
     usar_intervalo_auto = st.checkbox("Intervalo Automático (Mínimo)", value=True, help="Calcula o desconto automático (30min ou 15min) sem precisar digitar os horários de almoço.")
     
     if not usar_intervalo_auto:
@@ -486,7 +487,7 @@ if st.session_state.show_results:
                     valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min*"
                     footnote = f"<p style='font-size: 0.75rem; color: gray; text-align: center; margin-top: 1rem;'>*Seu tempo de {termo_intervalo_real} foi menor que o mínimo de {min_intervalo_real} minutos. Para os cálculos, foi considerado o valor mínimo obrigatório.</p>"
                 elif usar_intervalo_auto and duracao_almoco_minutos_real > 0:
-                     valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min"
+                     valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min (Auto)"
 
                 duracao_almoço_para_calculo = max(min_intervalo_real, almoco_efetivo_minutos)
                 trabalho_liquido_minutos = trabalho_bruto_minutos - duracao_almoço_para_calculo
