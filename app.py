@@ -133,7 +133,6 @@ def verificar_eventos_proximos():
             else:
                 emoji = "🗓️"
             
-            # --- NOVA LÓGICA GRAMATICAL ---
             partes_evento = []
             for nome in lista_nomes:
                 nome_limpo = nome.split('(')[0].strip()
@@ -157,7 +156,6 @@ def verificar_eventos_proximos():
             
     return mensagens
 
-# --- NOVA FUNÇÃO ---
 def gerar_contagem_regressiva_home_office():
     """Gera a string de contagem regressiva para o home office."""
     try:
@@ -199,6 +197,7 @@ def calcular_tempo_nucleo(entrada, saida, saida_almoco, retorno_almoco):
     
     # Se tiver horário de almoço explícito
     if saida_almoco and retorno_almoco:
+        # Verifica se o almoço intersecta com o horário núcleo
         inicio_almoco_sobreposicao = max(inicio_trabalho_nucleo, saida_almoco)
         fim_almoco_sobreposicao = min(fim_trabalho_nucleo, retorno_almoco)
         if fim_almoco_sobreposicao > inicio_almoco_sobreposicao:
@@ -215,8 +214,7 @@ def formatar_duracao(minutos):
     return f"{horas}h {mins}min"
 
 # --- Interface do Web App com Streamlit ---
-# ADICIONADO page_icon="🧮"
-st.set_page_config(page_title="Calculadora de Jornada", page_icon="⏱️", layout="centered")
+st.set_page_config(page_title="Calculadora de Jornada", page_icon="🧮", layout="centered")
 
 st.markdown("""
 <style>
@@ -322,7 +320,6 @@ with col_main:
     entrada_str = st.text_input("Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
     
     # --- CHECKBOX DE INTERVALO AUTOMÁTICO ---
-    # Agora definido como True por padrão e sem o emoji
     usar_intervalo_auto = st.checkbox("Intervalo Automático (Mínimo)", value=True, help="Calcula o desconto automático (30min ou 15min) sem precisar digitar os horários de almoço.")
     
     if not usar_intervalo_auto:
@@ -388,7 +385,6 @@ if st.session_state.show_results:
                 saida_almoco_prev = datetime.datetime.strptime(formatar_hora_input(saida_almoco_str), "%H:%M")
                 retorno_almoco_prev = datetime.datetime.strptime(formatar_hora_input(retorno_almoco_str), "%H:%M")
                 duracao_almoço_previsao = (retorno_almoco_prev - saida_almoco_prev).total_seconds() / 60
-            # Se for auto, a previsão já assume o mínimo (que é o padrão do código abaixo)
             
             hora_nucleo_inicio = hora_entrada.replace(hour=9, minute=0)
             
@@ -449,17 +445,27 @@ if st.session_state.show_results:
                 
                 duracao_almoco_minutos_real = 0
                 saida_almoco, retorno_almoco = None, None
+                horario_almoco_invalido = False
                 
-                # --- LÓGICA AJUSTADA PARA INTERVALO AUTOMÁTICO ---
+                # --- LÓGICA DE VALIDAÇÃO DO ALMOÇO ---
                 if not usar_intervalo_auto:
                     if saida_almoco_str and retorno_almoco_str:
                         saida_almoco = datetime.datetime.strptime(formatar_hora_input(saida_almoco_str), "%H:%M")
                         retorno_almoco = datetime.datetime.strptime(formatar_hora_input(retorno_almoco_str), "%H:%M")
                         if retorno_almoco < saida_almoco:
                             raise ValueError("A volta do almoço deve ser depois da saída para o almoço.")
+                        
                         duracao_almoco_minutos_real = (retorno_almoco - saida_almoco).total_seconds() / 60
+                        
+                        # Verifica se o início do almoço está entre 11h e 16h
+                        inicio_janela_almoco = saida_almoco.replace(hour=11, minute=0)
+                        fim_janela_almoco = saida_almoco.replace(hour=16, minute=0)
+                        
+                        # Se saiu antes das 11h ou depois das 16h, é inválido
+                        if saida_almoco < inicio_janela_almoco or saida_almoco > fim_janela_almoco:
+                            horario_almoco_invalido = True
                 else:
-                    # Se for automático, calcula a duração baseada no tempo bruto
+                    # Lógica para automático (calcula baseado no tempo bruto)
                     trabalho_bruto_temp = 0
                     if saida_valida > entrada_valida:
                          trabalho_bruto_temp = (saida_valida - entrada_valida).total_seconds() / 60
@@ -475,48 +481,74 @@ if st.session_state.show_results:
                 almoco_efetivo_minutos = 0
                 if not usar_intervalo_auto:
                     if saida_almoco and retorno_almoco:
-                        inicio_almoco_valido = max(saida_almoco, entrada_valida)
-                        fim_almoco_valido = min(retorno_almoco, saida_valida)
-                        if fim_almoco_valido > inicio_almoco_valido:
-                            almoco_efetivo_minutos = (fim_almoco_valido - inicio_almoco_valido).total_seconds() / 60
+                        # Se o horário for inválido, o almoço "legal" é 0 (para fins de desconto do obrigatório)
+                        # Mas o tempo real de ausência ainda será descontado no 'trabalho_liquido' depois
+                        if not horario_almoco_invalido:
+                            inicio_almoco_valido = max(saida_almoco, entrada_valida)
+                            fim_almoco_valido = min(retorno_almoco, saida_valida)
+                            if fim_almoco_valido > inicio_almoco_valido:
+                                almoco_efetivo_minutos = (fim_almoco_valido - inicio_almoco_valido).total_seconds() / 60
+                        else:
+                             # Se inválido, não conta como intervalo oficial cumprido
+                             almoco_efetivo_minutos = 0
                 else:
-                    # Se for automático, assumimos que o almoço foi "efetivo" (descontado integralmente)
+                    # Se for automático, assumimos válido
                     almoco_efetivo_minutos = duracao_almoco_minutos_real
 
                 trabalho_bruto_minutos = 0
                 if saida_valida > entrada_valida:
                     trabalho_bruto_minutos = (saida_valida - entrada_valida).total_seconds() / 60
                 
-                tempo_trabalhado_efetivo = trabalho_bruto_minutos - almoco_efetivo_minutos
+                # Tempo trabalhado "físico" (descontando qualquer saída, válida ou não)
+                # Se o horário foi inválido, precisamos descontar essa ausência explicitamente
+                desconto_ausencia = 0
+                if horario_almoco_invalido:
+                    desconto_ausencia = duracao_almoco_minutos_real
+
+                tempo_trabalhado_efetivo = trabalho_bruto_minutos - almoco_efetivo_minutos - desconto_ausencia
                 
                 if tempo_trabalhado_efetivo > 360: min_intervalo_real, termo_intervalo_real = 30, "almoço"
                 elif tempo_trabalhado_efetivo > 240: min_intervalo_real, termo_intervalo_real = 15, "intervalo"
                 else: min_intervalo_real, termo_intervalo_real = 0, "intervalo"
                 
                 valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min"
-                if min_intervalo_real > 0 and duracao_almoco_minutos_real < min_intervalo_real:
+                
+                # Lógica de mensagens de rodapé
+                if horario_almoco_invalido:
+                    valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min (Inválido)"
+                    footnote = f"<p style='font-size: 0.75rem; color: #ff4b4b; text-align: center; margin-top: 1rem;'>*Seu intervalo começou fora da janela permitida (11h às 16h). O tempo foi descontado como ausência E o intervalo obrigatório foi cobrado.</p>"
+                elif min_intervalo_real > 0 and duracao_almoco_minutos_real < min_intervalo_real:
                     valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min*"
                     footnote = f"<p style='font-size: 0.75rem; color: gray; text-align: center; margin-top: 1rem;'>*Seu tempo de {termo_intervalo_real} foi menor que o mínimo de {min_intervalo_real} minutos. Para os cálculos, foi considerado o valor mínimo obrigatório.</p>"
                 elif usar_intervalo_auto and duracao_almoco_minutos_real > 0:
                      valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min (Auto)"
 
+                # O desconto final considera o intervalo obrigatório SE ele não foi cumprido (seja por ser curto ou inválido)
                 duracao_almoço_para_calculo = max(min_intervalo_real, almoco_efetivo_minutos)
-                trabalho_liquido_minutos = trabalho_bruto_minutos - duracao_almoço_para_calculo
+                
+                # Se inválido, descontamos a ausência + o obrigatório (que não foi cumprido validamente)
+                trabalho_liquido_minutos = trabalho_bruto_minutos - duracao_almoço_para_calculo - desconto_ausencia
+                
                 saldo_banco_horas_minutos = trabalho_liquido_minutos - 480
                 
                 tempo_nucleo_minutos = calcular_tempo_nucleo(entrada_valida, saida_valida, saida_almoco, retorno_almoco)
                 
-                # Se for intervalo automático, descontamos o almoço do tempo de núcleo (assumindo que ocorreu no núcleo)
+                # Ajustes no tempo de núcleo
                 if usar_intervalo_auto and duracao_almoco_minutos_real > 0:
                     tempo_nucleo_minutos = max(0, tempo_nucleo_minutos - duracao_almoco_minutos_real)
+                # Se o almoço foi inválido mas ocorreu no núcleo, ele já foi descontado na função calcular_tempo_nucleo
+                # porque ela usa os horários brutos. Não precisamos descontar de novo aqui.
 
                 if tempo_nucleo_minutos < 300:
                     warnings_html += '<div class="custom-warning">Atenção: Não cumpriu as 5h obrigatórias no período núcleo.</div>'
                 lista_de_permanencia = []
                 if hora_entrada.time() < datetime.time(7, 0):
                     lista_de_permanencia.append("A entrada foi registrada antes das 7h")
-                if min_intervalo_real > 0 and duracao_almoco_minutos_real < min_intervalo_real:
+                if horario_almoco_invalido:
+                     lista_de_permanencia.append("Intervalo realizado fora do horário permitido (11h às 16h)")
+                elif min_intervalo_real > 0 and duracao_almoco_minutos_real < min_intervalo_real:
                     lista_de_permanencia.append(f"O {termo_intervalo_real} foi inferior a {min_intervalo_real} minutos")
+                
                 if trabalho_liquido_minutos > 600:
                     lista_de_permanencia.append("A jornada de trabalho excedeu 10 horas")
                 if hora_saida_real.time() > datetime.time(20, 0):
