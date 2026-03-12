@@ -347,6 +347,9 @@ st.markdown(f"""
     .st-b7 {{  background-color: rgba(12, 19, 14, 0.31) !important; }}
 
     /* --- TESTE RIGOROSO DO TOGGLE LACTANTE --- */
+    div[data-testid="stToggle"] {{
+        opacity: 0.7 !important;
+        margin-top: -10px !important;}}
    
     /* -------------------------------------- */
 
