@@ -347,18 +347,7 @@ st.markdown(f"""
     .st-b7 {{  background-color: rgba(12, 19, 14, 0.31) !important; }}
 
     /* --- TESTE RIGOROSO DO TOGGLE LACTANTE --- */
-    div[data-testid="stToggle"] {{
-        justify-content: flex-start !important; /* Fixado na esquerda */
-        margin-top: -12px !important;           /* Puxado pra cima */
-        padding-left: 2px !important;
-        opacity: 0.7 !important;                /* CRAVADO EM 0.7 PRA TESTE */
-    }}
-    
-    div[data-testid="stToggle"] label p {{
-        font-size: 0.9rem !important;
-        color: #e0e0e0 !important;
-    }}
-    /* Removido qualquer pseudo-classe como :hover ou input:checked para não haver conflito */
+   
     /* -------------------------------------- */
 
     /* Animações e Cards */
