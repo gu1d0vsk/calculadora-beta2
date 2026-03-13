@@ -235,23 +235,9 @@ mensagens_eventos = verificar_eventos_proximos()
 col_buffer_1, col_main, col_buffer_2 = st.columns([1, 6, 1])
 with col_main:
     
-    # --- TOGGLE LACTANTE ALINHADO À DIREITA (SEGURO E NATIVO) ---
-    col_espaco, col_lactante = st.columns([5, 3])
-    with col_lactante:
-        is_lactante = st.toggle("Lactante (6h)", value=False, key="toggle_lactante")
-    # ------------------------------------------------------------
-    
     entrada_str = st.text_input("Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
-    
-    # --- CHECKBOXES LADO A LADO ---
-    col_cb1, col_cb2 = st.columns(2)
-    with col_cb1:
-        usar_intervalo_auto = st.checkbox("Intervalo Automático", value=True, help="Desconto automático (30min ou 15min).")
-    with col_cb2:
-        tem_saida_extra = st.checkbox("Adicionar Saída Extra", value=False)
-    # ------------------------------
+    usar_intervalo_auto = st.checkbox("Intervalo Automático (Mínimo)", value=True)
 
-    # Renderiza os inputs de Almoço apenas se não for automático
     if not usar_intervalo_auto:
         col1, col2 = st.columns(2)
         with col1: saida_almoco_str = st.text_input("Saída para o Almoço", key="saida_almoco")
@@ -259,7 +245,7 @@ with col_main:
     else:
         saida_almoco_str, retorno_almoco_str = "", ""
 
-    # Renderiza os inputs de Saída Extra apenas se o checkbox estiver marcado
+    tem_saida_extra = st.checkbox("Adicionar outra saída/ausência", value=False)
     if tem_saida_extra:
         col_ex1, col_ex2 = st.columns(2)
         with col_ex1: saida_extra_str = st.text_input("Saída Extra", key="saida_extra")
@@ -272,6 +258,8 @@ with col_main:
     col_calc, col_events = st.columns(2)
     with col_calc: 
         calculate_clicked = st.button("Calcular", use_container_width=True)
+        # Toggle Minimalista logo abaixo do botão calcular
+        is_lactante = st.toggle("Lactante", value=False)
         
     with col_events:
         event_button_text = "Próximos Eventos 🗓️" if mensagens_eventos else "Próximos Eventos"
@@ -306,16 +294,17 @@ else:
         transform: translateY(0);
         transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     }
-    .main-title, .sub-title, div[data-testid="stTextInput"], div[data-testid="stButton"], div[data-testid="stCheckbox"], div[data-testid="stToggle"] {
+    .main-title, .sub-title, div[data-testid="stTextInput"], div[data-testid="stButton"]:not(:last-child), div[data-testid="stCheckbox"] {
         opacity: 0.5;
         transform: scale(0.98);
         transition: all 0.2s ease-in-out;
     }
-    .main-title:hover, .sub-title:hover, div[data-testid="stTextInput"]:hover, div[data-testid="stButton"]:hover, div[data-testid="stCheckbox"]:hover, div[data-testid="stToggle"]:hover {
+    .main-title:hover, .sub-title:hover, div[data-testid="stTextInput"]:hover, div[data-testid="stButton"]:hover, div[data-testid="stCheckbox"]:hover {
         opacity: 1;
         transform: scale(1);
     }
     """
+
 
 st.markdown(f"""
 <style>
@@ -352,15 +341,38 @@ st.markdown(f"""
     .main div[data-testid="stTextInput"] > label {{ text-align: center !important; width: 100%; display: block; }}
     .st-b7 {{  background-color: rgba(12, 19, 14, 0.31) !important; }}
 
-    /* Ajuste sutil para o Toggle nativo não ficar tão colado em cima */
+    /* ======================================================== */
+    /* NOVA PÍLULA MINIMALISTA "LACTANTE" (Glassmorphism) */
     div[data-testid="stToggle"] {{
-        margin-top: 10px;
-        justify-content: flex-end;
+        background-color: rgba(255, 255, 255, 0.03) !important; /* Fundo hiper sutil */
+        border: 1px solid rgba(255, 255, 255, 0.08) !important; /* Borda quase invisível */
+        border-radius: 20px !important; /* Formato de pílula arredondada */
+        padding: 4px 14px 4px 4px !important;
+        margin-top: 5px !important; /* Um leve respiro abaixo do botão calcular */
+        width: fit-content !important; /* Só ocupa o tamanho do texto */
+        display: inline-flex !important;
+        justify-content: flex-start !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     }}
+    
+    /* Efeito ao passar o mouse: acende com a cor verde do seu app */
+    div[data-testid="stToggle"]:hover {{
+        background-color: rgba(0, 80, 81, 0.15) !important;
+        border: 1px solid rgba(0, 80, 81, 0.6) !important;
+        box-shadow: 0 2px 8px rgba(0, 80, 81, 0.3) !important;
+    }}
+
+    /* Estilizando o Texto do Toggle */
     div[data-testid="stToggle"] label p {{
-        font-size: 0.85rem !important;
-        color: #e0e0e0 !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        color: #b0b0b0 !important; /* Cinza elegante */
+        text-transform: uppercase !important;
+        letter-spacing: 1.2px !important;
+        margin-left: 2px !important;
     }}
+    /* ======================================================== */
 
     /* Animações e Cards */
     .results-container, .event-list-container.visible {{ animation: fadeIn 0.4s ease-out forwards; }}
@@ -441,7 +453,7 @@ if st.session_state.show_results:
             predictions_container_class = "predictions-wrapper"
             limite_saida = hora_entrada.replace(hour=20, minute=0, second=0, microsecond=0)
             
-            # --- NOVA INTELIGÊNCIA: GRUPOS DE PAUSAS VÁLIDAS NA JANELA ---
+            # --- LÓGICA DE AGRUPAMENTO DE PAUSAS VÁLIDAS ---
             duracao_almoço_previsao = 0
             almoco_valido_previsao = 0
             almoco_fora_previsao = 0
@@ -483,7 +495,7 @@ if st.session_state.show_results:
                     pass
             
             pausa_total_na_janela_prev = almoco_valido_previsao + extra_valido_previsao
-            # -------------------------------------------------------------
+            # -----------------------------------------------
             
             hora_nucleo_inicio = hora_entrada.replace(hour=9, minute=0)
             tempo_antes_nucleo_min = 0
@@ -504,7 +516,6 @@ if st.session_state.show_results:
                 min_intervalo_padrao = 30
                 meta_diaria_minutos = 480
 
-            # Substituímos a lógica de soma cega pela nova inteligência de "janela"
             add_5h = max(intervalo_obrigatorio_5h, pausa_total_na_janela_prev) + almoco_fora_previsao + extra_fora_previsao
             add_padrao = max(min_intervalo_padrao, pausa_total_na_janela_prev) + almoco_fora_previsao + extra_fora_previsao
             add_max = max(30, pausa_total_na_janela_prev) + almoco_fora_previsao + extra_fora_previsao
@@ -623,7 +634,7 @@ if st.session_state.show_results:
                     footnote = f"<p style='font-size: 0.75rem; color: gray; text-align: center; margin-top: 1rem;'>*Sua pausa total na janela (11h-16h) foi menor que o mínimo de {min_intervalo_real}m. O sistema descontou o valor mínimo obrigatório.</p>"
                 elif min_intervalo_real > 0 and extra_valido_minutos > 0 and almoco_valido_minutos < min_intervalo_real:
                     valor_almoco_display = f"{almoco_valido_minutos:.0f}m + {extra_valido_minutos:.0f}m extra"
-                    footnote = f"<p style='font-size: 0.75rem; color: #54c679; text-align: center; margin-top: 1rem;'>*Sua saída extra completou o intervalo mínimo de {min_intervalo_real}m na janela!</p>"
+                    footnote = f"<p style='font-size: 0.75rem; color: #54c679; text-align: center; margin-top: 1rem;'>*Sua saída extra ajudou a completar o intervalo mínimo obrigatório de {min_intervalo_real}m na janela!</p>"
 
                 # Desconto oficial é o BOLO TODO de pausas dentro da janela
                 desconto_intervalo_oficial = max(min_intervalo_real, pausa_total_na_janela)
