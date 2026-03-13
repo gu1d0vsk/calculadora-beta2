@@ -455,6 +455,7 @@ if st.session_state.show_results:
                 jan_fim_prev = saida_almoco_prev.replace(hour=16, minute=0, second=0)
                 ini_valido_prev = max(saida_almoco_prev, jan_inicio_prev)
                 fim_valido_prev = min(retorno_almoco_prev, jan_fim_prev)
+                
                 if fim_valido_prev > ini_valido_prev:
                     almoco_valido_previsao = (fim_valido_prev - ini_valido_prev).total_seconds() / 60
                 almoco_fora_previsao = max(0, duracao_almoço_previsao - almoco_valido_previsao)
@@ -474,6 +475,7 @@ if st.session_state.show_results:
                         jan_fim_ext = saida_ext_prev.replace(hour=16, minute=0, second=0)
                         ext_ini_valido = max(saida_ext_prev, jan_inicio_ext)
                         ext_fim_valido = min(ret_ext_prev, jan_fim_ext)
+                        
                         if ext_fim_valido > ext_ini_valido:
                             extra_valido_previsao = (ext_fim_valido - ext_ini_valido).total_seconds() / 60
                         extra_fora_previsao = max(0, duracao_extra_previsao - extra_valido_previsao)
@@ -492,12 +494,15 @@ if st.session_state.show_results:
             if jornada_total_minima_min > 360: intervalo_obrigatorio_5h = 30
             else: intervalo_obrigatorio_5h = 15
 
+            # --- LÓGICA DO LACTANTE ---
             if is_lactante:
                 horas_padrao = 6
                 min_intervalo_padrao = 15
+                meta_diaria_minutos = 360
             else:
                 horas_padrao = 8
                 min_intervalo_padrao = 30
+                meta_diaria_minutos = 480
 
             # Substituímos a lógica de soma cega pela nova inteligência de "janela"
             add_5h = max(intervalo_obrigatorio_5h, pausa_total_na_janela_prev) + almoco_fora_previsao + extra_fora_previsao
@@ -610,7 +615,7 @@ if st.session_state.show_results:
                      valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min <span style='font-size: 0.85rem; font-weight: 400; color: #5a5a5a;'>(Auto)</span>"
                 elif desconto_ausencia > 0:
                      valor_almoco_display = f"{almoco_valido_minutos:.0f}min (+{desconto_ausencia:.0f}min fora)"
-                     footnote = f"<p style='font-size: 0.75rem; color: #ff4b4b; text-align: center; margin-top: 1rem;'>*Atenção: {desconto_ausencia:.0f} minutos do seu intervalo principal foram fora da janela (11h-16h) e contaram como ausência pura.</p>"
+                     footnote = f"<p style='font-size: 0.75rem; color: #ff4b4b; text-align: center; margin-top: 1rem;'>*Atenção: {desconto_ausencia:.0f} minutos do seu intervalo principal foram fora da janela permitida (11h-16h) e contaram como ausência pura.</p>"
                 elif min_intervalo_real > 0 and pausa_total_na_janela < min_intervalo_real:
                     valor_almoco_display = f"{almoco_valido_minutos:.0f}min*"
                     if extra_valido_minutos > 0:
@@ -620,13 +625,13 @@ if st.session_state.show_results:
                     valor_almoco_display = f"{almoco_valido_minutos:.0f}m + {extra_valido_minutos:.0f}m extra"
                     footnote = f"<p style='font-size: 0.75rem; color: #54c679; text-align: center; margin-top: 1rem;'>*Sua saída extra completou o intervalo mínimo de {min_intervalo_real}m na janela!</p>"
 
-                # O desconto oficial avalia o BOLO TODO de pausas dentro da janela
+                # Desconto oficial é o BOLO TODO de pausas dentro da janela
                 desconto_intervalo_oficial = max(min_intervalo_real, pausa_total_na_janela)
                 
-                # E aqui o trabalho líquido subtrai o oficial + ausências que caíram fora da janela
+                # E o trabalho líquido subtrai o oficial + ausências fora da janela
                 trabalho_liquido_minutos = trabalho_bruto_minutos - desconto_intervalo_oficial - desconto_ausencia - extra_fora_minutos
                 
-                meta_diaria_minutos = 360 if is_lactante else 480
+                # Desconta 6h (Lactante) ou 8h (Padrão)
                 saldo_banco_horas_minutos = trabalho_liquido_minutos - meta_diaria_minutos
                 
                 tempo_nucleo_minutos = calcular_tempo_nucleo(entrada_valida, saida_valida, saida_almoco, retorno_almoco, saida_extra, retorno_extra)
@@ -673,57 +678,87 @@ if st.session_state.show_results:
         finally:
             st.session_state.show_results = False
 
-# --- CÁLCULO DOS DADOS DO RODAPÉ (CABEÇALHO) ---
+# --- CÁLCULO DOS DADOS DO RODAPÉ ---
 daily_forecast = get_daily_weather()
 contagem_regressiva = gerar_contagem_regressiva_home_office()
-contagem_novatos = gerar_contagem_regressiva_novatos()
 
+# Monta o conteúdo HTML do rodapé combinando as variáveis
 footer_items = []
-if daily_forecast: footer_items.append(f"<span>{daily_forecast}</span>")
-if contagem_regressiva: footer_items.append(f"<span>{contagem_regressiva}</span>")
-if contagem_novatos: footer_items.append(f"<span>{contagem_novatos}</span>")
+if daily_forecast:
+    # Remove tags P e centralização que possam vir da função original se houver, 
+    # ou usa o texto cru. Como sua função retorna texto puro com pipes, está ótimo.
+    footer_items.append(f"<span>{daily_forecast}</span>")
 
+if contagem_regressiva:
+    footer_items.append(f"<span>{contagem_regressiva}</span>")
+
+# Une os itens com um separador visual
 footer_content = " <span style='opacity: 0.3; margin: 0 8px;'>|</span> ".join(footer_items)
-if not footer_content: footer_content = "&nbsp;"
 
+# Se não tiver nada, coloca um espaço vazio para não quebrar o layout
+if not footer_content:
+    footer_content = "&nbsp;"
+
+# --- INJEÇÃO DO RODAPÉ (AGORA NO TOPO/CABEÇALHO) VIA JAVASCRIPT ---
 import streamlit.components.v1 as components
 
 js_footer = f"""
 <script>
     function injectHeader() {{
         var headerId = "header-fixo-js";
+        
+        // Remove cabeçalho antigo para atualizar se houver reload
         var oldHeader = window.parent.document.getElementById(headerId);
         if (oldHeader) {{ oldHeader.remove(); }}
+
+        // Cria o elemento
         var header = window.parent.document.createElement("div");
         header.id = headerId;
+        
+        // Injeta o conteúdo gerado no Python
         header.innerHTML = `{footer_content}`;
+        
+        // --- ESTILOS CSS PARA O TOPO ---
         header.style.position = "fixed";
-        header.style.top = "0";          
+        header.style.top = "0";          // Fixa no topo
         header.style.left = "0";
         header.style.width = "100%";
         header.style.textAlign = "center";
-        header.style.backgroundColor = "rgba(240, 242, 246, 0.05)"; 
+        
+        // Visual
+        header.style.backgroundColor = "rgba(240, 242, 246, 0.05)"; // Mais opaco para não misturar com o texto rolando por baixo
         header.style.color = "#555";
         header.style.padding = "10px 10px";
         header.style.fontSize = "0.75rem";
-        header.style.borderBottom = "1px solid rgba(0,0,0,0)"; 
-        header.style.zIndex = "2147483647"; 
-        header.style.backdropFilter = "blur(0)"; 
+        header.style.borderBottom = "1px solid rgba(0,0,0,0)"; // Borda em baixo agora
+        
+        // Comportamento
+        header.style.zIndex = "2147483647"; // Máximo z-index para ficar sobre tudo
+        header.style.backdropFilter = "blur(0)"; // Blur mais forte
         header.style.display = "flex";
         header.style.justifyContent = "center";
         header.style.alignItems = "center";
         header.style.flexWrap = "wrap";
         header.style.lineHeight = "1.4";
         header.style.fontFamily = "sans-serif";
+    
+        // Injeta no corpo da página
         window.parent.document.body.appendChild(header);
+        
+        // --- AJUSTE DE ESPAÇAMENTO DO CONTEÚDO PRINCIPAL ---
+        // Empurra o conteúdo para baixo para não ficar escondido atrás da barra
         var mainContainer = window.parent.document.querySelector('.main .block-container');
         if (mainContainer) {{
-            mainContainer.style.marginTop = "0rem"; 
+            mainContainer.style.marginTop = "0rem"; // Espaço extra no topo
             mainContainer.style.paddingTop = "0rem";
         }}
+        
+        // Remove as linhas horizontais extras
         var hrs = window.parent.document.querySelectorAll('.st-emotion-cache-yfw52f hr');
         hrs.forEach(hr => hr.style.display = 'none');
     }}
+    
+    // Executa
     injectHeader();
 </script>
 """
@@ -736,6 +771,7 @@ components.html(
         const removeStreamlitElements = () => {
             const footer = window.parent.document.querySelector('footer');
             if (footer) { footer.style.display = 'none'; }
+
             const badge = window.parent.document.querySelector('div[class*="viewerBadge"]');
             if (badge) { badge.style.display = 'none'; }
         }
@@ -743,6 +779,46 @@ components.html(
         const observer = new MutationObserver(() => {
             removeStreamlitElements();
         });
+        observer.observe(window.parent.document.body, { childList: true, subtree: true });
+    </script>
+    """,
+    height=0,
+)
+
+components.html(js_footer, height=0)
+
+components.html(
+    """
+    <script>
+        const removeStreamlitElements = () => {
+            // Alvo: O rodapé padrão (onde fica o "Made with Streamlit")
+            const footer = window.parent.document.querySelector('footer');
+            if (footer) {
+                footer.style.display = 'none';
+            }
+
+            // Alvo: O botão vermelho específico "Hosted with Streamlit" (caso seja separado do footer)
+            // Eles costumam mudar a classe, mas geralmente está numa div com 'viewerBadge'
+            const badge = window.parent.document.querySelector('div[class*="viewerBadge"]');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+            
+            // Opcional: Remover o menu de hamburguer do topo (caso queira limpar tudo)
+            // const header = window.parent.document.querySelector('header');
+            // if (header) {
+            //    header.style.display = 'none';
+            // }
+        }
+
+        // Tenta rodar assim que carrega
+        removeStreamlitElements();
+
+        // Como o Streamlit as vezes recarrega elementos, vamos garantir com um observer
+        const observer = new MutationObserver(() => {
+            removeStreamlitElements();
+        });
+        
         observer.observe(window.parent.document.body, { childList: true, subtree: true });
     </script>
     """,
