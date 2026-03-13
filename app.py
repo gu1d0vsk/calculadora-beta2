@@ -237,13 +237,11 @@ with col_main:
     
     entrada_str = st.text_input("Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
     
-    # --- Checkboxes organizados lado a lado ---
     col_cb1, col_cb2 = st.columns(2)
     with col_cb1:
         usar_intervalo_auto = st.checkbox("Intervalo Automático (Mínimo)", value=True)
     with col_cb2:
         tem_saida_extra = st.checkbox("Adicionar outra saída/ausência", value=False)
-    # ------------------------------------------
 
     if not usar_intervalo_auto:
         col1, col2 = st.columns(2)
@@ -313,7 +311,6 @@ else:
 
 st.markdown(f"""
 <style>
-    /* CSS NUCLEAR PARA LIMPAR STREAMLIT */
     footer {{visibility: hidden;}}
     #MainMenu {{visibility: hidden;}}
     header {{visibility: hidden;}}
@@ -322,12 +319,10 @@ st.markdown(f"""
 
     {layout_css}
 
-    /* CSS GERAL */
     .main .block-container {{ max-width: 800px; padding-bottom: 5rem; }} 
     .main-title {{ font-size: 2.2rem !important; font-weight: bold; text-align: center; }}
     .sub-title {{ color: gray; text-align: center; font-size: 1.25rem !important; }}
     
-    /* BOTÕES COM NEON */
     div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) div[data-testid="stButton"] > button {{ 
         background-color: rgb(221, 79, 5) !important; color: #FFFFFF !important; border-radius: 4rem; border-color: transparent;
         transition: all 0.3s ease; 
@@ -372,7 +367,6 @@ st.markdown(f"""
         margin-left: 2px !important;
     }}
 
-    /* Animações e Cards */
     .results-container, .event-list-container.visible {{ animation: fadeIn 0.4s ease-out forwards; }}
     @keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(20px); }} to {{ opacity: 1; transform: translateY(0); }} }}
     
@@ -516,16 +510,23 @@ if st.session_state.show_results:
 
             # --- CORREÇÃO DO CÁLCULO DE PREVISÃO COM INTERVALO AUTO + EXTRA ---
             if usar_intervalo_auto:
-                # Se for automático, presumimos que a pessoa está tirando o mínimo obrigatório, 
-                # e qualquer saída extra é SOMADA integralmente a esse tempo mínimo.
                 add_5h = intervalo_obrigatorio_5h + duracao_extra_previsao
                 add_padrao = min_intervalo_padrao + duracao_extra_previsao
                 add_max = 30 + duracao_extra_previsao
+                
+                # Variáveis apenas para exibição visual correta
+                base_display_5h = intervalo_obrigatorio_5h
+                base_display_padrao = min_intervalo_padrao
+                base_display_max = 30
             else:
-                # Se for manual, a saída extra pode estar ocorrendo DURANTE o próprio intervalo principal.
                 add_5h = max(intervalo_obrigatorio_5h, pausa_total_na_janela_prev) + almoco_fora_previsao + extra_fora_previsao
                 add_padrao = max(min_intervalo_padrao, pausa_total_na_janela_prev) + almoco_fora_previsao + extra_fora_previsao
                 add_max = max(30, pausa_total_na_janela_prev) + almoco_fora_previsao + extra_fora_previsao
+                
+                # Variáveis apenas para exibição visual correta
+                base_display_5h = max(intervalo_obrigatorio_5h, pausa_total_na_janela_prev)
+                base_display_padrao = max(min_intervalo_padrao, pausa_total_na_janela_prev)
+                base_display_max = max(30, pausa_total_na_janela_prev)
 
             hora_base_5h = max(entrada_valida_previsao, hora_nucleo_inicio)
             hora_saida_5h_calculada = hora_base_5h + datetime.timedelta(hours=5, minutes=add_5h)
@@ -545,9 +546,9 @@ if st.session_state.show_results:
             texto_desc_padrao = f"({formatar_duracao(duracao_padrao_min)})" if hora_saida_padrao_calculada > limite_saida else f"({horas_padrao}h)"
             texto_desc_10h = f"({formatar_duracao(duracao_10h_min)})" if hora_saida_10h_calculada > limite_saida else "(10h)"
 
-            termo_intervalo_5h = "almoço" if add_5h >= 30 else "intervalo"
-            termo_intervalo_padrao = "almoço" if add_padrao >= 30 else "intervalo"
-            termo_intervalo_max = "almoço" if add_max >= 30 else "intervalo"
+            termo_intervalo_5h = "almoço" if base_display_5h >= 30 else "intervalo"
+            termo_intervalo_padrao = "almoço" if base_display_padrao >= 30 else "intervalo"
+            termo_intervalo_max = "almoço" if base_display_max >= 30 else "intervalo"
             
             texto_detalhe_extra = ""
             if not usar_intervalo_auto and (almoco_fora_previsao + extra_fora_previsao) > 0:
@@ -555,7 +556,7 @@ if st.session_state.show_results:
             elif usar_intervalo_auto and duracao_extra_previsao > 0:
                 texto_detalhe_extra = f" + {duracao_extra_previsao:.0f}m extra"
 
-            predictions_html = f"""<div class='section-container'><h3>Previsões de Saída</h3><div class="predictions-grid-container"><div class="metric-custom metric-minimo"><div class="label">Mínimo {texto_desc_5h}</div><div class="value">{hora_saida_5h.strftime('%H:%M')}</div><div class="details">{add_5h:.0f}min de {termo_intervalo_5h}{texto_detalhe_extra}</div></div><div class="metric-custom metric-padrao"><div class="label">Jornada Padrão {texto_desc_padrao}</div><div class="value">{hora_saida_padrao.strftime('%H:%M')}</div><div class="details">{add_padrao:.0f}min de {termo_intervalo_padrao}{texto_detalhe_extra}</div></div><div class="metric-custom metric-maximo"><div class="label">Máximo {texto_desc_10h}</div><div class="value">{hora_saida_10h.strftime('%H:%M')}</div><div class="details">{add_max:.0f}min de {termo_intervalo_max}{texto_detalhe_extra}</div></div></div></div>"""
+            predictions_html = f"""<div class='section-container'><h3>Previsões de Saída</h3><div class="predictions-grid-container"><div class="metric-custom metric-minimo"><div class="label">Mínimo {texto_desc_5h}</div><div class="value">{hora_saida_5h.strftime('%H:%M')}</div><div class="details">{base_display_5h:.0f}min de {termo_intervalo_5h}{texto_detalhe_extra}</div></div><div class="metric-custom metric-padrao"><div class="label">Jornada Padrão {texto_desc_padrao}</div><div class="value">{hora_saida_padrao.strftime('%H:%M')}</div><div class="details">{base_display_padrao:.0f}min de {termo_intervalo_padrao}{texto_detalhe_extra}</div></div><div class="metric-custom metric-maximo"><div class="label">Máximo {texto_desc_10h}</div><div class="value">{hora_saida_10h.strftime('%H:%M')}</div><div class="details">{base_display_max:.0f}min de {termo_intervalo_max}{texto_detalhe_extra}</div></div></div></div>"""
             
             footnote, warnings_html = "", ""
             if saida_real_str:
@@ -631,7 +632,6 @@ if st.session_state.show_results:
                 
                 valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min"
                 if usar_intervalo_auto and duracao_almoco_minutos_real > 0:
-                    # Correção: Mostra explicitamente se teve tempo extra na UI
                     if duracao_extra_minutos > 0:
                         valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}m <span style='font-size: 0.85rem; font-weight: 400; color: #5a5a5a;'>(Auto)</span> + {duracao_extra_minutos:.0f}m extra"
                     else:
@@ -702,7 +702,6 @@ if st.session_state.show_results:
 daily_forecast = get_daily_weather()
 contagem_regressiva = gerar_contagem_regressiva_home_office()
 
-# Monta o conteúdo HTML do rodapé combinando as variáveis
 footer_items = []
 if daily_forecast:
     footer_items.append(f"<span>{daily_forecast}</span>")
@@ -710,7 +709,6 @@ if daily_forecast:
 if contagem_regressiva:
     footer_items.append(f"<span>{contagem_regressiva}</span>")
 
-# Une os itens com um separador visual
 footer_content = " <span style='opacity: 0.3; margin: 0 8px;'>|</span> ".join(footer_items)
 
 if not footer_content:
