@@ -236,7 +236,14 @@ col_buffer_1, col_main, col_buffer_2 = st.columns([1, 6, 1])
 with col_main:
     
     entrada_str = st.text_input("Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
-    usar_intervalo_auto = st.checkbox("Intervalo Automático (Mínimo)", value=True)
+    
+    # --- Checkboxes organizados lado a lado ---
+    col_cb1, col_cb2 = st.columns(2)
+    with col_cb1:
+        usar_intervalo_auto = st.checkbox("Intervalo Automático (Mínimo)", value=True)
+    with col_cb2:
+        tem_saida_extra = st.checkbox("Adicionar outra saída/ausência", value=False)
+    # ------------------------------------------
 
     if not usar_intervalo_auto:
         col1, col2 = st.columns(2)
@@ -245,7 +252,6 @@ with col_main:
     else:
         saida_almoco_str, retorno_almoco_str = "", ""
 
-    tem_saida_extra = st.checkbox("Adicionar outra saída/ausência", value=False)
     if tem_saida_extra:
         col_ex1, col_ex2 = st.columns(2)
         with col_ex1: saida_extra_str = st.text_input("Saída Extra", key="saida_extra")
