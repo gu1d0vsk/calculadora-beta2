@@ -137,7 +137,7 @@ def gerar_contagem_regressiva_home_office():
         texto_dias = "dia" if dias_restantes == 1 else "dias"
         texto_uteis = "dia útil" if dias_uteis == 1 else "úteis"
         
-        return f"<strong>Integra II:</strong> {dias_restantes} {texto_dias} ({dias_uteis} {texto_uteis}) para o home office"
+        return f"<strong>Integra II:</strong> {dias_restantes} {texto_dias} ({dias_uteis} {texto_uteis})"
     except Exception as e:
         print(f"Erro ao gerar contagem regressiva: {e}")
         return ""
@@ -167,7 +167,7 @@ def gerar_contagem_regressiva_novatos():
         texto_dias = "dia" if dias_restantes == 1 else "dias"
         texto_uteis = "dia útil" if dias_uteis == 1 else "úteis"
         
-        return f"<strong>UltraNovos (Homeoffice):</strong> {dias_restantes} {texto_dias} ({dias_uteis} {texto_uteis})"
+        return f"<strong>UltraNovos:</strong> {dias_restantes} {texto_dias} ({dias_uteis} {texto_uteis})"
     except Exception as e:
         print(f"Erro ao gerar contagem regressiva dos novos: {e}")
         return ""
@@ -701,6 +701,7 @@ if st.session_state.show_results:
 # --- CÁLCULO DOS DADOS DO RODAPÉ ---
 daily_forecast = get_daily_weather()
 contagem_regressiva = gerar_contagem_regressiva_home_office()
+contagem_novatos = gerar_contagem_regressiva_novatos() # <- Adicionado aqui!
 
 footer_items = []
 if daily_forecast:
@@ -708,6 +709,10 @@ if daily_forecast:
 
 if contagem_regressiva:
     footer_items.append(f"<span>{contagem_regressiva}</span>")
+
+# E injetado na lista aqui!
+if contagem_novatos:
+    footer_items.append(f"<span>{contagem_novatos}</span>") 
 
 footer_content = " <span style='opacity: 0.3; margin: 0 8px;'>|</span> ".join(footer_items)
 
