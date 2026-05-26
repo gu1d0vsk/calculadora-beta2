@@ -235,7 +235,14 @@ mensagens_eventos = verificar_eventos_proximos()
 col_buffer_1, col_main, col_buffer_2 = st.columns([1, 6, 1])
 with col_main:
     
-    entrada_str = st.text_input("Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
+    modo_calculo = st.radio("O que você quer descobrir?", ["Que horas posso sair", "Que horas devo chegar"], horizontal=True)
+    
+    if modo_calculo == "Que horas posso sair":
+        entrada_str = st.text_input("Sua Entrada", key="entrada", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
+        saida_desejada_str = ""
+    else:
+        saida_desejada_str = st.text_input("Sua Saída Desejada", key="saida_des", help="formatos aceitos:\nHMM, HHMM ou HH:MM")
+        entrada_str = ""
     
     col_cb1, col_cb2 = st.columns(2)
     with col_cb1:
@@ -257,8 +264,11 @@ with col_main:
     else:
         saida_extra_str, retorno_extra_str = "", ""
 
-    saida_real_str = st.text_input("Saída", key="saida_real")
-    
+    if modo_calculo == "Que horas posso sair":
+        saida_real_str = st.text_input("Saída Real (Opcional - p/ Resumo do Dia)", key="saida_real")
+    else:
+        saida_real_str = ""
+        
     col_calc, col_events = st.columns(2)
     with col_calc: 
         calculate_clicked = st.button("Calcular", use_container_width=True)
@@ -274,9 +284,13 @@ if 'show_results' not in st.session_state: st.session_state.show_results = False
 
 if events_clicked: st.session_state.show_events = not st.session_state.show_events
 if calculate_clicked: st.session_state.show_results = True
-if st.session_state.show_results and not entrada_str:
-    st.warning("Por favor, preencha pelo menos o horário de entrada.")
-    st.session_state.show_results = False
+if st.session_state.show_results:
+    if modo_calculo == "Que horas posso sair" and not entrada_str:
+        st.warning("Por favor, preencha o horário de entrada.")
+        st.session_state.show_results = False
+    elif modo_calculo == "Que horas devo chegar" and not saida_desejada_str:
+        st.warning("Por favor, preencha o horário da saída desejada.")
+        st.session_state.show_results = False
 
 # --- 3. LÓGICA DE CSS DINÂMICO ---
 has_active_content = st.session_state.show_results or st.session_state.show_events
@@ -435,7 +449,7 @@ if st.session_state.show_events:
 
 results_placeholder = st.empty()
 if st.session_state.show_results:
-    if entrada_str:
+    if modo_calculo == "Que horas posso sair" and entrada_str:
         try:
             hora_entrada = datetime.datetime.strptime(formatar_hora_input(entrada_str), "%H:%M")
             
