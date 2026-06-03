@@ -216,12 +216,18 @@ st.set_page_config(page_title="Calculadora de Jornada", page_icon="🧮", layout
 
 page_bg_img = """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
 [data-testid="stApp"] {
-    background-image: linear-gradient(rgb(2, 45, 44) 0%, rgb(0, 21, 21) 100%);
+    background-image: linear-gradient(to bottom left, #142D2D, #3b8484);
     background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
 }
 [data-testid="stHeader"] { background-color: rgba(0,0,0,0); }
-.stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, label, span { color: #e0e0e0 !important; }
+.stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, label, span { 
+    color: #e0e0e0 !important; 
+    font-family: 'Inter', sans-serif;
+}
 </style>
 """
 st.markdown(page_bg_img, unsafe_allow_html=True)
@@ -312,9 +318,9 @@ else:
         transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     }
     .main-title, .sub-title, div[data-testid="stTextInput"], div[data-testid="stButton"]:not(:last-child), div[data-testid="stCheckbox"] {
-        opacity: 0.5;
+        opacity: 0.7;
         transform: scale(0.98);
-        transition: all 0.2s ease-in-out;
+        transition: all 0.3s ease-in-out;
     }
     .main-title:hover, .sub-title:hover, div[data-testid="stTextInput"]:hover, div[data-testid="stButton"]:hover, div[data-testid="stCheckbox"]:hover {
         opacity: 1;
@@ -333,94 +339,144 @@ st.markdown(f"""
 
     {layout_css}
 
-    .main .block-container {{ max-width: 800px; padding-bottom: 5rem; }} 
-    .main-title {{ font-size: 2.2rem !important; font-weight: bold; text-align: center; }}
-    .sub-title {{ color: gray; text-align: center; font-size: 1.25rem !important; }}
+    .main .block-container {{ 
+        max-width: 800px; 
+        padding-bottom: 5rem;
+    }} 
+
+    .main-title {{ font-size: 2.2rem !important; font-weight: 900; text-align: center; letter-spacing: -0.025em; margin-bottom: 0.5rem; }}
+    .sub-title {{ color: #cbd5e1 !important; text-align: center; font-size: 1.1rem !important; opacity: 0.8; margin-bottom: 2rem; }}
     
+    /* Botões Modernos */
     div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) div[data-testid="stButton"] > button {{ 
-        background-color: rgb(221, 79, 5) !important; color: #FFFFFF !important; border-radius: 4rem; border-color: transparent;
-        transition: all 0.3s ease; 
+        background-color: #f58220 !important; color: #FFFFFF !important; border-radius: 9999px; border-color: transparent;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); font-weight: 700; height: 3rem;
     }}
     div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) div[data-testid="stButton"] > button:hover {{
-        box-shadow: 0 0 12px rgba(221, 79, 5, 0.8), 0 0 20px rgba(221, 79, 5, 0.4); transform: scale(1.02);
+        box-shadow: 0 10px 20px rgba(245, 130, 32, 0.3); transform: translateY(-3px); background-color: #e07519 !important;
     }}
     div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) div[data-testid="stButton"] > button {{ 
-        background-color: rgb(0, 80, 81) !important; color: #FFFFFF !important; border-radius: 4rem; border-color: transparent;
-        transition: all 0.3s ease;
+        background-color: #005051 !important; color: #FFFFFF !important; border-radius: 9999px; border-color: transparent;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); font-weight: 700; height: 3rem;
     }}
     div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) div[data-testid="stButton"] > button:hover {{
-        box-shadow: 0 0 12px rgba(0, 80, 81, 0.8), 0 0 20px rgba(0, 80, 81, 0.4); transform: scale(1.02);
+        box-shadow: 0 10px 20px rgba(0, 80, 81, 0.4); transform: translateY(-3px); background-color: #007072 !important;
     }}
-    div[data-testid="stTextInput"] input {{ border-radius: 1.5rem !important; text-align: center; font-weight: 600; }}
-    .main div[data-testid="stTextInput"] > label {{ text-align: center !important; width: 100%; display: block; }}
-    .st-b7 {{  background-color: rgba(12, 19, 14, 0.31) !important; }}
 
+    /* Inputs "Pill" */
+    div[data-testid="stTextInput"] input {{ 
+        background-color: rgba(0, 0, 0, 0.25) !important; 
+        border: 1px solid transparent !important;
+        border-radius: 9999px !important; 
+        text-align: center; font-weight: 600; font-size: 1.1rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        color: #ffffff !important;
+        padding-top: 0.75rem !important; padding-bottom: 0.75rem !important;
+    }}
+    div[data-testid="stTextInput"] input:focus {{
+        border-color: #4ec3c3 !important;
+        background-color: rgba(0, 0, 0, 0.4) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(78, 195, 195, 0.2) !important;
+    }}
+    .main div[data-testid="stTextInput"] > label {{ 
+        text-align: center !important; width: 100%; display: block; 
+        color: #cbd5e1 !important; font-size: 0.875rem !important; font-weight: 600; margin-bottom: 0.25rem;
+    }}
+
+    /* Radio Options */
+    div[data-testid="stRadio"] {{ justify-content: center; margin-bottom: 1rem; }}
+    div[data-testid="stRadio"] label {{ color: #cbd5e1 !important; }}
+
+    /* Toggles & Checkboxes */
     div[data-testid="stToggle"] {{
-        background-color: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 20px !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 9999px !important;
         padding: 4px 14px 4px 4px !important;
         margin-top: 5px !important;
         width: fit-content !important;
         display: inline-flex !important;
         justify-content: flex-start !important;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
         transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     }}
     div[data-testid="stToggle"]:hover {{
-        background-color: rgba(0, 80, 81, 0.15) !important;
-        border: 1px solid rgba(0, 80, 81, 0.6) !important;
-        box-shadow: 0 2px 8px rgba(0, 80, 81, 0.3) !important;
+        background-color: rgba(78, 195, 195, 0.15) !important;
+        border: 1px solid rgba(78, 195, 195, 0.6) !important;
+        box-shadow: 0 4px 12px rgba(78, 195, 195, 0.2) !important;
     }}
     div[data-testid="stToggle"] label p {{
-        font-size: 0.75rem !important;
-        font-weight: 600 !important;
-        color: #b0b0b0 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 1.2px !important;
-        margin-left: 2px !important;
+        font-size: 0.75rem !important; font-weight: 600 !important; color: #cbd5e1 !important;
+        text-transform: uppercase !important; letter-spacing: 1px !important; margin-left: 4px !important;
     }}
+    div[data-testid="stCheckbox"] {{ display: flex; justify-content: center; margin-top: 0px; padding-bottom: 0px; }}
+    div[data-testid="stCheckbox"] label span p {{ font-size: 0.85rem !important; color: #cbd5e1 !important; font-weight: 500; }}
 
+    /* Animations */
     .results-container, .event-list-container.visible {{ animation: fadeIn 0.4s ease-out forwards; }}
     @keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(20px); }} to {{ opacity: 1; transform: translateY(0); }} }}
     
-    .event-list-item {{ background-color: #cacaca3b00; padding: 10px; border-radius: 1.5rem; margin-bottom: 5px; text-align: center; }}
-    body.dark .event-list-item {{ background-color: #cacaca3b00; color: #fafafa; }}
-    .custom-warning, .custom-error {{ border-radius: 1.5rem; padding: 1rem; margin-top: 1rem; text-align: center; }}
-    .custom-warning {{ background-color: rgba(255, 170, 0, 0); border: 1px solid #ffaa0000; color: rgb(247, 185, 61); }}
-    .custom-error {{ background-color: rgba(255, 108, 108, 0.15); border: 1px solid rgb(255, 108, 108); color: rgb(255, 75, 75); }}
+    /* Events List */
+    .event-list-item {{ 
+        background-color: rgba(255, 255, 255, 0.08); 
+        backdrop-filter: blur(8px);
+        padding: 12px; border-radius: 1.5rem; margin-bottom: 8px; text-align: center; 
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+    }}
+    .event-list-item:hover {{ background-color: rgba(255, 255, 255, 0.15); transform: translateY(-2px); }}
+
+    /* Warnings */
+    .custom-warning, .custom-error {{ border-radius: 1.5rem; padding: 1rem; margin-top: 1rem; text-align: center; backdrop-filter: blur(8px); }}
+    .custom-warning {{ background-color: rgba(255, 170, 0, 0.1); border: 1px solid rgba(255, 170, 0, 0.5); color: #ffaa00; }}
+    .custom-error {{ background-color: rgba(255, 108, 108, 0.15); border: 1px solid rgba(255, 108, 108, 0.6); color: #FF6C6C; }}
     .custom-error p {{ margin: 0.5rem 0 0 0; }}
+    
     div[data-testid="stHeading"] a {{ display: none !important; }}
     div[data-testid="stMetric"] {{ background-color: transparent !important; padding: 0 !important; }}
-    div[data-testid="stMetric"] [data-testid="stMetricLabel"] p, div[data-testid="stMetric"] [data-testid="stMetricValue"] {{ color: inherit !important; }}
-    .section-container {{ text-align: center; margin-top: 1.5rem; }}
-    .metric-custom {{ background-color: #F0F2F6; border-radius: 4rem; padding: 1rem; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; color: #31333f; }}
-    .metric-almoco {{ background-color: #F0F2F6; }}
-    .metric-saldo-pos {{ background-color: rgb(84, 198, 121); }}
-    .metric-saldo-neg {{ background-color: rgb(255, 108, 108); }}
-    .metric-minimo {{ background-color: rgb(57, 94, 94); }}
-    .metric-padrao {{ background-color: rgb(0, 80, 81); }} 
-    .metric-maximo {{ background-color: rgb(221, 79, 5); }} 
-    .metric-custom .label {{ font-size: 0.875rem; margin-bottom: 0.25rem; color: #5a5a5a; }}
-    .metric-custom .value {{ font-size: 1.5rem; font-weight: 900; color: #31333f; }}
-    .metric-custom .details {{ font-size: 0.75rem; margin-top: 0.25rem; color: #5a5a5a; }}
-    .metric-saldo-pos .value, .metric-saldo-neg .value, .metric-minimo .value, .metric-padrao .value, .metric-maximo .value {{ color: #FFFFFF; }}
-    .metric-saldo-pos .label, .metric-saldo-neg .label, .metric-minimo .label, .metric-padrao .label, .metric-maximo .label, .metric-minimo .details, .metric-padrao .details, .metric-maximo .details {{ color: rgba(255, 255, 255, 0.85); }}
-    .predictions-grid-container {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }}
+    
+    /* Result Cards */
+    .section-container {{ text-align: center; margin-top: 2rem; }}
+    .section-container h3 {{ font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; letter-spacing: -0.025em; }}
+    
+    .metric-custom {{ 
+        border-radius: 2rem; padding: 1.25rem; text-align: center; height: 100%; display: flex; 
+        flex-direction: column; justify-content: center; 
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }}
+    .metric-custom:hover {{ transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }}
+    
+    .metric-almoco {{ background-color: rgba(240, 242, 246, 0.08); backdrop-filter: blur(8px); color: #e0e0e0; }}
+    .metric-saldo-pos {{ background-color: #54C679; color: white; }}
+    .metric-saldo-neg {{ background-color: #FF6C6C; color: white; }}
+    .metric-minimo {{ background-color: #395E5E; color: white; border-color: rgba(255,255,255,0.1); }}
+    .metric-padrao {{ 
+        background-color: #005051; color: white; 
+        border: 2px solid #007072; 
+        transform: scale(1.02); z-index: 10;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }}
+    .metric-padrao:hover {{ transform: scale(1.05) translateY(-4px); box-shadow: 0 15px 30px rgba(0,80,81,0.5); }}
+    .metric-maximo {{ background-color: #DD4F05; color: white; border-color: rgba(255,255,255,0.1); }} 
+    
+    .metric-custom .label {{ font-size: 0.875rem; margin-bottom: 0.25rem; opacity: 0.85; font-weight: 600; }}
+    .metric-custom .value {{ font-size: 1.75rem; font-weight: 900; letter-spacing: -0.025em; line-height: 1.1; }}
+    .metric-custom .details {{ font-size: 0.75rem; margin-top: 0.35rem; opacity: 0.8; font-weight: 500; }}
+
+    .predictions-grid-container {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }}
     .summary-grid-container {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }}
     
     .predictions-wrapper {{ transition: opacity 0.4s ease-out, transform 0.4s ease-out, padding 0.4s ease-out; }}
-    .predictions-wrapper.de-emphasized {{ opacity: 0.5; transform: scale(0.98); padding-bottom: 1rem; margin-bottom: 1rem; }}
-
-    div[data-testid="stCheckbox"] {{ display: flex; justify-content: center; margin-top: 0px; padding-bottom: 0px; }}
-    div[data-testid="stCheckbox"] label span p {{ font-size: 0.85rem !important; color: #555; }}
+    .predictions-wrapper.de-emphasized {{ opacity: 0.6; transform: scale(0.98); padding-bottom: 1rem; margin-bottom: 1rem; filter: grayscale(20%); }}
 
     @media (max-width: 640px) {{
-        .predictions-grid-container {{ grid-template-columns: repeat(2, 1fr); }}
+        .predictions-grid-container {{ grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }}
         .predictions-grid-container .metric-minimo {{ order: 2; }}
         .predictions-grid-container .metric-padrao {{ order: 1; grid-column: 1 / -1; }}
         .predictions-grid-container .metric-maximo {{ order: 3; }}
-        .summary-grid-container {{ grid-template-columns: repeat(2, 1fr); }}
+        .summary-grid-container {{ grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }}
+        .metric-custom {{ padding: 1rem; }}
     }}
     
     ._link_gzau3_10 {{ display: none !important; }}
@@ -479,7 +535,6 @@ if st.session_state.show_results:
             if saida_1_prev and ret_1_prev and saida_2_prev and ret_2_prev:
                 dur_1 = (ret_1_prev - saida_1_prev).total_seconds() / 60
                 dur_2 = (ret_2_prev - saida_2_prev).total_seconds() / 60
-                # Se a "saída extra" for maior que o "almoço", eles trocam de lugar na análise
                 if dur_2 > dur_1:
                     saida_1_prev, saida_2_prev = saida_2_prev, saida_1_prev
                     ret_1_prev, ret_2_prev = ret_2_prev, ret_1_prev
@@ -514,7 +569,6 @@ if st.session_state.show_results:
             if jornada_total_minima_min > 360: intervalo_obrigatorio_5h = 30
             else: intervalo_obrigatorio_5h = 15
 
-            # --- LÓGICA DO LACTANTE ---
             if is_lactante:
                 horas_padrao = 6
                 min_intervalo_padrao = 15
@@ -524,7 +578,6 @@ if st.session_state.show_results:
                 min_intervalo_padrao = 30
                 meta_diaria_minutos = 480
 
-            # --- CORREÇÃO DO CÁLCULO DE PREVISÃO COM O ALMOÇO ISOLADO DO EXTRA ---
             if usar_intervalo_auto:
                 add_5h = intervalo_obrigatorio_5h + duracao_extra_previsao
                 add_padrao = min_intervalo_padrao + duracao_extra_previsao
@@ -601,14 +654,12 @@ if st.session_state.show_results:
                     retorno_extra = datetime.datetime.strptime(formatar_hora_input(retorno_extra_str), "%H:%M")
                     if retorno_extra < saida_extra: raise ValueError("O retorno extra deve ser depois da saída extra.")
 
-                # --- A MÁGICA DA INVERSÃO INTELIGENTE (Para o Resumo do Dia) ---
                 if not usar_intervalo_auto and saida_almoco and retorno_almoco and saida_extra and retorno_extra:
                     dur_a = (retorno_almoco - saida_almoco).total_seconds() / 60
                     dur_e = (retorno_extra - saida_extra).total_seconds() / 60
                     if dur_e > dur_a:
                         saida_almoco, saida_extra = saida_extra, saida_almoco
                         retorno_almoco, retorno_extra = retorno_extra, retorno_almoco
-                # ----------------------------------------------------------------
 
                 if not usar_intervalo_auto and saida_almoco and retorno_almoco:
                     duracao_almoco_minutos_real = (retorno_almoco - saida_almoco).total_seconds() / 60
@@ -643,13 +694,13 @@ if st.session_state.show_results:
                 texto_extra_display = f" + {duracao_extra_minutos:.0f}m extra" if duracao_extra_minutos > 0 else ""
                 
                 if usar_intervalo_auto and duracao_almoco_minutos_real > 0:
-                    valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}m <span style='font-size: 0.85rem; font-weight: 400; color: #5a5a5a;'>(Auto)</span>{texto_extra_display}"
+                    valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}m <span style='font-size: 0.85rem; font-weight: 400; opacity: 0.7;'>(Auto)</span>{texto_extra_display}"
                 elif desconto_ausencia > 0:
                     valor_almoco_display = f"{almoco_valido_minutos:.0f}m (+{desconto_ausencia:.0f}m fora){texto_extra_display}"
                     footnote = f"<p style='font-size: 0.75rem; color: #ff4b4b; text-align: center; margin-top: 1rem;'>*Atenção: {desconto_ausencia:.0f} minutos do seu almoço foram fora da janela (11h-16h) e contaram como ausência pura.</p>"
                 elif min_intervalo_real > 0 and almoco_valido_minutos < min_intervalo_real:
                     valor_almoco_display = f"{almoco_valido_minutos:.0f}m*{texto_extra_display}"
-                    footnote = f"<p style='font-size: 0.75rem; color: gray; text-align: center; margin-top: 1rem;'>*Seu almoço na janela (11h-16h) foi de {almoco_valido_minutos:.0f}m, menor que o mínimo de {min_intervalo_real}m ininterruptos. O sistema descontou a diferença.</p>"
+                    footnote = f"<p style='font-size: 0.75rem; color: #cbd5e1; text-align: center; margin-top: 1rem;'>*Seu almoço na janela (11h-16h) foi de {almoco_valido_minutos:.0f}m, menor que o mínimo de {min_intervalo_real}m ininterruptos. O sistema descontou a diferença.</p>"
                 else:
                     valor_almoco_display = f"{duracao_almoco_minutos_real:.0f}min{texto_extra_display}"
 
@@ -849,7 +900,7 @@ footer_content = " <span style='opacity: 0.3; margin: 0 8px;'>|</span> ".join(fo
 if not footer_content:
     footer_content = "&nbsp;"
 
-# --- INJEÇÃO DO RODAPÉ VIA JAVASCRIPT ---
+# --- INJEÇÃO DO RODAPÉ (PÍLULA) VIA JAVASCRIPT ---
 import streamlit.components.v1 as components
 
 js_footer = f"""
@@ -865,33 +916,39 @@ js_footer = f"""
         
         header.innerHTML = `{footer_content}`;
         
+        // Estilo de pílula "glassmorphism" no topo (parecido com o HTML)
         header.style.position = "fixed";
-        header.style.top = "0";          
-        header.style.left = "0";
-        header.style.width = "100%";
+        header.style.top = "1rem";          
+        header.style.left = "50%";
+        header.style.transform = "translateX(-50%)";
+        header.style.width = "fit-content";
+        header.style.maxWidth = "90%";
         header.style.textAlign = "center";
         
-        header.style.backgroundColor = "rgba(240, 242, 246, 0.05)"; 
-        header.style.color = "#555";
-        header.style.padding = "10px 10px";
-        header.style.fontSize = "0.75rem";
-        header.style.borderBottom = "1px solid rgba(0,0,0,0)"; 
+        header.style.backgroundColor = "rgba(255, 255, 255, 0.08)"; 
+        header.style.color = "#e0e0e0";
+        header.style.padding = "10px 24px";
+        header.style.borderRadius = "9999px"; // Arredondamento total da pílula
+        header.style.fontSize = "0.8rem";
+        header.style.fontWeight = "600";
+        header.style.border = "1px solid rgba(255,255,255,0.1)"; 
+        header.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
         
         header.style.zIndex = "2147483647"; 
-        header.style.backdropFilter = "blur(0)"; 
+        header.style.backdropFilter = "blur(12px)"; 
         header.style.display = "flex";
         header.style.justifyContent = "center";
         header.style.alignItems = "center";
         header.style.flexWrap = "wrap";
         header.style.lineHeight = "1.4";
-        header.style.fontFamily = "sans-serif";
+        header.style.fontFamily = "'Inter', sans-serif";
     
         window.parent.document.body.appendChild(header);
         
         var mainContainer = window.parent.document.querySelector('.main .block-container');
         if (mainContainer) {{
             mainContainer.style.marginTop = "0rem"; 
-            mainContainer.style.paddingTop = "0rem";
+            mainContainer.style.paddingTop = "3rem"; // Espaço extra pra não colar na pílula
         }}
         
         var hrs = window.parent.document.querySelectorAll('.st-emotion-cache-yfw52f hr');
